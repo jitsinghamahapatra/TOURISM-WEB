@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Compass, Shield, Heart, Star, Check, HelpCircle, ChevronDown, ChevronUp, MapPin, Coffee, Car, ShieldAlert, Award } from 'lucide-react';
-import { useLenis } from '@studio-freight/react-lenis';
+import { useLenis } from 'lenis/react';
 
 export default function Home({ tours, aboutContent, onSelectTour, onNavigate }) {
   const lenis = useLenis();
