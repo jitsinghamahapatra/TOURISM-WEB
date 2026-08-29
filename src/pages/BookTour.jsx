@@ -502,10 +502,10 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                     <Feather size={24} style={{ color: 'var(--accent-terracotta)', flexShrink: 0, marginTop: '0.2rem' }} />
                     <div>
                       <h5 style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', fontWeight: 600, color: 'var(--text-charcoal)', marginBottom: '0.4rem' }}>
-                        Boutique Micro-Group Guarantee
+                        Personalized Journey & Homestay Guarantee
                       </h5>
                       <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                        Pledging a strict limit of 8 participants per tour. Your homestay and transfers are coordinated directly with local hosts for an authentic, homely experience.
+                        Tailored directly to your group size. Your homestays, fresh homely meals, and mountain transfers are coordinated end-to-end with local hosts for an authentic, peaceful experience.
                       </p>
                     </div>
                   </div>
