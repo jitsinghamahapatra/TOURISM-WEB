@@ -240,6 +240,34 @@ export default function ContactUs({ contactContent, onAddContactMessage }) {
 
             </form>
 
+            {/* Submitting Loading Overlay */}
+            <AnimatePresence>
+              {isSubmitting && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(8px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '1.5rem'
+                  }}
+                >
+                  <div className="loader"></div>
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-charcoal)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    Sending Message...
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
           </div>
         </div>
 

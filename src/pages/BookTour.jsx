@@ -108,7 +108,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
     if (activeTour) {
       setFormData(prev => ({
         ...prev,
-        date: activeTour.dates[0],
+        date: '',
         fullName: '',
         phone: '',
         description: ''
@@ -139,6 +139,9 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
       errors.phone = 'Please enter your phone number';
     } else if (!/^\+?[0-9\s\-()]{7,20}$/.test(formData.phone)) {
       errors.phone = 'Please enter a valid phone number';
+    }
+    if (!formData.date) {
+      errors.date = 'Please select a travel date';
     }
     return errors;
   };
@@ -640,31 +643,26 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                         {formErrors.phone && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.phone}</span>}
                       </div>
 
-                      {/* Date Select Dropdown */}
+                      {/* Date Select Calendar */}
                       <div className="form-group" style={{ marginBottom: '1.75rem' }}>
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>SELECT DATE WINDOW</label>
-                        <select
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>SELECT DATE</label>
+                        <input
+                          type="date"
                           name="date"
                           value={formData.date}
                           onChange={handleInputChange}
                           className="form-input"
                           style={{ 
-                            borderBottom: '1px solid var(--text-charcoal)', 
+                            borderBottom: formErrors.date ? '1px solid var(--accent-terracotta)' : '1px solid var(--text-charcoal)', 
                             fontSize: '1.05rem', 
                             padding: '0.5rem 0',
                             fontWeight: '500',
-                            appearance: 'none', 
-                            cursor: 'pointer', 
-                            backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%231c1b18%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><polyline points=%276 9 12 15 18 9%27></polyline></svg>")', 
-                            backgroundRepeat: 'no-repeat', 
-                            backgroundPosition: 'right center', 
-                            backgroundSize: '16px' 
+                            backgroundColor: 'transparent',
+                            color: 'var(--text-charcoal)'
                           }}
-                        >
-                          {activeTour.dates.map(date => (
-                            <option key={date} value={date}>{date}</option>
-                          ))}
-                        </select>
+                          required
+                        />
+                        {formErrors.date && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.date}</span>}
                       </div>
 
                       {/* Description / Special Requests optional */}
@@ -687,30 +685,27 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                         />
                       </div>
 
-                      {/* Select Quantity Widget (Guests counter) */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', margin: '2rem 0' }}>
-                        <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                          Select Quantity
-                        </span>
-                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--text-charcoal)', borderRadius: '2px', backgroundColor: '#fff' }}>
-                          <button 
-                            type="button" 
-                            onClick={decrementGuests}
-                            style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', fontWeight: '500' }}
-                          >
-                            -
-                          </button>
-                          <span style={{ width: '40px', textAlign: 'center', fontWeight: '700', fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>
-                            {guests}
-                          </span>
-                          <button 
-                            type="button" 
-                            onClick={incrementGuests}
-                            style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', fontWeight: '500' }}
-                          >
-                            +
-                          </button>
-                        </div>
+                      {/* Number of People Input */}
+                      <div className="form-group" style={{ marginBottom: '1.75rem' }}>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>NUMBER OF PEOPLE</label>
+                        <input
+                          type="number"
+                          name="guests"
+                          min="1"
+                          value={guests}
+                          onChange={(e) => setGuests(Math.max(1, parseInt(e.target.value) || 1))}
+                          className="form-input"
+                          style={{
+                            borderBottom: '1px solid var(--text-charcoal)',
+                            fontSize: '1.05rem',
+                            padding: '0.5rem 0',
+                            fontWeight: '500',
+                            backgroundColor: 'transparent',
+                            color: 'var(--text-charcoal)',
+                            width: '100%'
+                          }}
+                          required
+                        />
                       </div>
 
                       {/* Urgent Spots Remaining (LAIBA style red banner text) */}
@@ -757,6 +752,34 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
 
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Submitting Loading Overlay */}
+        <AnimatePresence>
+          {isSubmitting && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 9999,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '1.5rem'
+              }}
+            >
+              <div className="loader"></div>
+              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-charcoal)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                Transmitting Request...
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
