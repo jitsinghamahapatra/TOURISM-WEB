@@ -1,95 +1,144 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, User, Mail, Users, CheckCircle, ArrowRight } from 'lucide-react';
+import { Calendar, User, Phone, Users, CheckCircle, ArrowRight, Clock, Star, MapPin, Feather, ArrowLeft } from 'lucide-react';
 
-export default function BookTour({ selectedTour, onClearTourSelection }) {
-  const tours = [
+export default function BookTour({ selectedTour, onClearTourSelection, tours: toursProp, onAddBookingRequest }) {
+  // Merge admin-provided tours (from props) with default local fallback structure
+  const defaultTours = [
     {
-      id: 'highlands',
-      title: 'Scottish Highlands',
-      difficulty: 'Moderate Walk',
-      landscape: 'Alpine & Valleys',
-      price: 4200,
-      dates: ['May 12 - May 19, 2027', 'Jun 05 - Jun 12, 2027', 'Sep 18 - Sep 25, 2027']
-    },
-    {
-      id: 'patagonia',
-      title: 'Patagonian Peaks',
+      id: 'north-sikkim',
+      title: 'North Sikkim Valley Expedition',
+      tagline: 'Glaciers, Hot Springs & Sacred Lakes',
       difficulty: 'Challenging Trek',
-      landscape: 'Glacial & Peaks',
-      price: 6800,
-      dates: ['Jan 10 - Jan 22, 2027', 'Feb 14 - Feb 26, 2027', 'Mar 08 - Mar 20, 2027']
+      badge: 'TREK',
+      landscape: 'Glaciers & High Valleys',
+      duration: '6 Days',
+      bestTime: 'April - June & Oct - Dec',
+      images: ['/tour_highlands.jpg', '/hero_landscape.jpg', '/tour_patagonia.jpg'],
+      description: 'A journey through the high altitude fields of Lachung and Lachen, tracing the pristine path to Gurudongmar Lake. Features authentic village homestays with warm hospitality, traditional food, and stunning views.',
+      spotsRemaining: 3,
+      dates: ['Apr 10 - Apr 15, 2027', 'May 05 - May 10, 2027', 'Oct 12 - Oct 17, 2027']
     },
     {
-      id: 'tuscany',
-      title: 'Tuscan Hills',
+      id: 'east-sikkim',
+      title: 'Silk Route Heritage Path',
+      tagline: 'Historical Hairpins & High Passes',
+      difficulty: 'Moderate Walk',
+      badge: 'WALK',
+      landscape: 'Winding Passes & Ridges',
+      duration: '5 Days',
+      bestTime: 'May - November',
+      images: ['/tour_patagonia.jpg', '/hero_landscape.jpg', '/tour_tuscany.jpg'],
+      description: 'Follow the ancient trader tracks of the Silk Route through Zuluk and Nathang Valley. Stay in cozy homesteads with a beautiful Bengali touch, enjoying delicious, homely food prepared by local hosts.',
+      spotsRemaining: 2,
+      dates: ['May 12 - May 17, 2027', 'Jun 20 - Jun 25, 2027', 'Nov 08 - Nov 13, 2027']
+    },
+    {
+      id: 'darjeeling-kalimpong',
+      title: 'Darjeeling Tea Garden Ridge',
+      tagline: 'Morning Kanchenjunga & Cypress Trails',
       difficulty: 'Leisurely Walk',
-      landscape: 'Countryside & Ridges',
-      price: 3900,
-      dates: ['Apr 18 - Apr 25, 2027', 'May 22 - May 29, 2027', 'Oct 02 - Oct 09, 2027']
+      badge: 'WALK',
+      landscape: 'Tea Estates & Mountain Ridges',
+      duration: '4 Days',
+      bestTime: 'March - May & Oct - Dec',
+      images: ['/tour_tuscany.jpg', '/hero_landscape.jpg', '/tour_highlands.jpg'],
+      description: 'A relaxing retreat through the heritage tea estates of Darjeeling and pine trails of Kalimpong. Perfect for couples or families seeking peaceful views, local heritage walks, and comforting local cuisine.',
+      spotsRemaining: 4,
+      dates: ['Mar 18 - Mar 22, 2027', 'May 10 - May 14, 2027', 'Oct 20 - Oct 24, 2027']
     }
   ];
 
-  const [activeFilter, setActiveFilter] = useState('All');
+  // Map admin-panel tours (which may lack images/dates) onto full format
+  const tours = (toursProp && toursProp.length > 0)
+    ? toursProp.map((t, i) => ({
+        id: t.id || `tour-${i}`,
+        title: t.title || 'Tour',
+        tagline: t.tagline || '',
+        difficulty: t.difficulty || 'Moderate Walk',
+        badge: (t.difficulty || '').toLowerCase().includes('challenging') ? 'TREK' : 'WALK',
+        landscape: t.landscape || '',
+        duration: t.duration || '',
+        bestTime: t.bestTime || '',
+        images: t.images || [t.image || '/tour_highlands.jpg', '/hero_landscape.jpg'],
+        description: t.description || '',
+        spotsRemaining: t.spotsRemaining || 4,
+        dates: t.dates || ['Flexible — contact us to arrange your preferred dates']
+      }))
+    : defaultTours;
+
+  // Routing View State: 'collection' | 'detail'
+  const [view, setView] = useState('collection');
+  const [activeTourIndex, setActiveTourIndex] = useState(0);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
+  // Sync selectedTour from parent component state (e.g. Home clicks)
+  useEffect(() => {
+    if (selectedTour && selectedTour !== 'All') {
+      const idx = tours.findIndex(t => t.title.toLowerCase().includes(selectedTour.toLowerCase()));
+      if (idx !== -1) {
+        setActiveTourIndex(idx);
+        setActiveImageIndex(0);
+        setView('detail');
+      }
+    } else {
+      setView('collection');
+    }
+  }, [selectedTour]);
+
+  const activeTour = tours[activeTourIndex];
+
+  // Booking Form State
   const [formData, setFormData] = useState({
-    tour: '',
     date: '',
-    guests: '1',
     fullName: '',
-    email: '',
-    notes: ''
+    phone: '',
+    description: ''
   });
+  const [guests, setGuests] = useState(1);
 
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [bookingDetails, setBookingDetails] = useState({});
 
-  // Sync selectedTour from parent component state (e.g. Home clicks)
+  // Reset form values when active tour changes
   useEffect(() => {
-    if (selectedTour && selectedTour !== 'All') {
-      const matched = tours.find(t => t.title.toLowerCase().includes(selectedTour.toLowerCase()));
-      if (matched) {
-        setFormData(prev => ({
-          ...prev,
-          tour: matched.title,
-          date: matched.dates[0]
-        }));
-      }
+    if (activeTour) {
+      setFormData(prev => ({
+        ...prev,
+        date: activeTour.dates[0],
+        fullName: '',
+        phone: '',
+        description: ''
+      }));
+      setGuests(1);
+      setActiveImageIndex(0);
+      setFormErrors({});
     }
-  }, [selectedTour]);
-
-  const handleFilterChange = (filter) => {
-    setActiveFilter(filter);
-  };
+  }, [activeTourIndex]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => {
-      const updated = { ...prev, [name]: value };
-      // Auto-update date to first available if tour changes
-      if (name === 'tour') {
-        const matched = tours.find(t => t.title === value);
-        updated.date = matched ? matched.dates[0] : '';
-      }
-      return updated;
-    });
-
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
     // Clear error
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
+  const incrementGuests = () => setGuests(prev => Math.min(8, prev + 1));
+  const decrementGuests = () => setGuests(prev => Math.max(1, prev - 1));
+
   const validateForm = () => {
     const errors = {};
-    if (!formData.tour) errors.tour = 'Please select a journey';
-    if (!formData.date) errors.date = 'Please select a date';
-    if (!formData.fullName.trim()) errors.fullName = 'Full name is required';
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Please provide a valid email';
+    if (!formData.fullName.trim()) errors.fullName = 'Please enter your name';
+    if (!formData.phone.trim()) {
+      errors.phone = 'Please enter your phone number';
+    } else if (!/^\+?[0-9\s\-()]{7,20}$/.test(formData.phone)) {
+      errors.phone = 'Please enter a valid phone number';
     }
     return errors;
   };
@@ -103,292 +152,618 @@ export default function BookTour({ selectedTour, onClearTourSelection }) {
     }
 
     setIsSubmitting(true);
-    // Simulate API request
+    // Simulate booking transmission
     setTimeout(() => {
+      const refId = `MP-${Math.floor(100000 + Math.random() * 900000)}`;
+      // Save to admin panel
+      if (onAddBookingRequest) {
+        onAddBookingRequest({
+          id: refId,
+          tourName: activeTour.title,
+          userName: formData.fullName,
+          phone: formData.phone,
+          guests: guests,
+          date: formData.date,
+          description: formData.description || '',
+          status: 'pending',
+          submittedAt: new Date().toISOString()
+        });
+      }
       setIsSubmitting(false);
       setSubmitSuccess(true);
       setBookingDetails({
-        id: `RK-${Math.floor(100000 + Math.random() * 900000)}`,
-        ...formData,
-        price: tours.find(t => t.title === formData.tour)?.price * parseInt(formData.guests)
+        id: refId,
+        tourTitle: activeTour.title,
+        guests: guests,
+        ...formData
       });
-      // Clear selections
-      setFormData({
-        tour: '',
-        date: '',
-        guests: '1',
-        fullName: '',
-        email: '',
-        notes: ''
-      });
-      onClearTourSelection();
     }, 1800);
   };
 
-  const filteredTours = activeFilter === 'All' 
-    ? tours 
-    : tours.filter(t => t.difficulty.toLowerCase().includes(activeFilter.toLowerCase()) || t.landscape.toLowerCase().includes(activeFilter.toLowerCase()));
+  // Categories for Sidebar Filtering
+  const categories = [
+    { id: 'All', label: 'All Pieces' },
+    { id: 'Moderate', label: 'Moderate Walks' },
+    { id: 'Challenging', label: 'Challenging Treks' },
+    { id: 'Leisurely', label: 'Leisurely Walks' }
+  ];
 
-  const selectedTourData = tours.find(t => t.title === formData.tour);
+  // Filtering Logic
+  const filteredTours = categoryFilter === 'All' 
+    ? tours 
+    : tours.filter(t => t.difficulty.toLowerCase().includes(categoryFilter.toLowerCase()));
 
   return (
-    <section id="tours" className="section-padding" style={{ backgroundColor: 'var(--bg-sand-light)', borderTop: '1px solid var(--border-light)' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+    <section className="section-padding" style={{ backgroundColor: 'var(--bg-alabaster)', minHeight: '100vh', paddingTop: '120px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem' }}>
         
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <span className="label-mono" style={{ color: 'var(--accent-terracotta)', display: 'block', marginBottom: '1rem' }}>
-            Reservation Desk
-          </span>
-          <h2 className="heading-medium" style={{ color: 'var(--text-charcoal)' }}>
-            Configure Your Journey
-          </h2>
-          <p className="body-large" style={{ marginTop: '1rem', maxWidth: '600px', margin: '1rem auto 0' }}>
-            Book your placement in our micro-groups. Secure early bookings for 2027.
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          gap: '1rem', 
-          marginBottom: '3rem',
-          flexWrap: 'wrap'
-        }}>
-          {['All', 'Walk', 'Trek', 'Valleys', 'Glacial', 'Countryside'].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => handleFilterChange(filter)}
-              style={{
-                padding: '0.5rem 1.25rem',
-                borderRadius: '50px',
-                border: '1px solid',
-                borderColor: activeFilter === filter ? 'var(--text-charcoal)' : 'var(--border-light)',
-                backgroundColor: activeFilter === filter ? 'var(--text-charcoal)' : 'transparent',
-                color: activeFilter === filter ? 'var(--bg-alabaster)' : 'var(--text-muted)',
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                fontWeight: 500,
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
-
-        {/* Interactive Booking Container */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(12, 1fr)', 
-          gap: '3rem',
-          alignItems: 'start'
-        }} className="grid-booking-mobile">
-          
-          {/* Quick Select Panel */}
-          <div style={{ gridColumn: 'span 5' }} className="col-12-mobile">
-            <span className="label-mono" style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '1.5rem' }}>
-              Quick Selection
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {filteredTours.map((t) => (
-                <motion.div
-                  key={t.id}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => {
-                    setFormData(prev => ({
-                      ...prev,
-                      tour: t.title,
-                      date: t.dates[0]
-                    }));
-                    if (formErrors.tour) setFormErrors(prev => ({ ...prev, tour: '' }));
-                  }}
-                  style={{
-                    backgroundColor: formData.tour === t.title ? 'var(--bg-sand)' : 'var(--bg-alabaster)',
-                    border: '1px solid',
-                    borderColor: formData.tour === t.title ? 'var(--accent-terracotta)' : 'var(--border-light)',
-                    borderRadius: '16px',
-                    padding: '1.5rem',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.3s, border-color 0.3s'
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h4 style={{ fontFamily: 'var(--font-sans)', fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-charcoal)' }}>
-                      {t.title}
-                    </h4>
-                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--accent-terracotta)' }}>
-                      ${t.price}
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    <span>{t.difficulty}</span>
-                    <span>&bull;</span>
-                    <span>{t.landscape}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Form Panel */}
-          <div style={{ 
-            gridColumn: '6 / span 7',
-            backgroundColor: 'var(--bg-alabaster)',
-            padding: '3rem 2.5rem',
-            borderRadius: '24px',
-            border: '1px solid var(--border-light)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.02)'
-          }} className="col-12-mobile">
+        <AnimatePresence mode="wait">
+          {view === 'collection' ? (
             
-            <form onSubmit={handleSubmit}>
-              {/* Tour Selection */}
-              <div className="form-group">
-                <label className="form-label">Select Sanctuary Journey</label>
-                <select
-                  name="tour"
-                  value={formData.tour}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  style={{ appearance: 'none', cursor: 'pointer', backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%231c1b18%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><polyline points=%276 9 12 15 18 9%27></polyline></svg>")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right center', backgroundSize: '16px' }}
-                >
-                  <option value="" disabled>-- Select a Journey --</option>
-                  {tours.map(t => (
-                    <option key={t.id} value={t.title}>{t.title} (${t.price} pp)</option>
-                  ))}
-                </select>
-                {formErrors.tour && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.tour}</span>}
+            /* VIEW 1: COLLECTION CATALOGUE VIEW (Image 2 layout) */
+            <motion.div
+              key="collection-view"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Collection Header */}
+              <div style={{ marginBottom: '4rem', textAlign: 'left' }}>
+                <h1 style={{ 
+                  fontFamily: 'var(--font-sans)', 
+                  fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', 
+                  fontWeight: 800, 
+                  color: 'var(--text-charcoal)',
+                  marginBottom: '1rem',
+                  letterSpacing: '-0.02em'
+                }}>
+                  Collection.
+                </h1>
+                <p className="body-large" style={{ color: 'var(--text-muted)', maxWidth: '650px', fontWeight: 400 }}>
+                  Our complete catalogue of minimalist and modern slow journeys, designed to elevate your connection with the terrain.
+                </p>
               </div>
 
-              {/* Date Selection */}
-              <div className="form-group">
-                <label className="form-label">Select Date Window (2027)</label>
-                <select
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  disabled={!formData.tour}
-                  style={{ appearance: 'none', cursor: formData.tour ? 'pointer' : 'not-allowed', opacity: formData.tour ? 1 : 0.6 }}
-                >
-                  <option value="" disabled>-- Choose Available Window --</option>
-                  {selectedTourData?.dates.map(date => (
-                    <option key={date} value={date}>{date}</option>
-                  ))}
-                </select>
-                {formErrors.date && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.date}</span>}
-              </div>
+              {/* Sidebar + Catalog Content Row */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: '240px 1fr', 
+                gap: '4rem',
+                alignItems: 'start'
+              }} className="grid-catalog-mobile">
+                
+                {/* Left Sidebar Filter Categories */}
+                <div style={{ position: 'sticky', top: '120px' }} className="catalog-sidebar-mobile">
+                  <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '1.5rem', fontWeight: 600 }}>
+                    Categories
+                  </span>
+                  
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="sidebar-list-mobile">
+                    {categories.map(cat => (
+                      <li key={cat.id}>
+                        <button
+                          onClick={() => setCategoryFilter(cat.id)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            fontFamily: 'var(--font-sans)',
+                            fontSize: '1.05rem',
+                            fontWeight: categoryFilter === cat.id ? '600' : '400',
+                            color: categoryFilter === cat.id ? 'var(--text-charcoal)' : 'var(--text-muted)',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            padding: '0.25rem 0',
+                            display: 'inline-flex',
+                            flexDirection: 'column',
+                            alignItems: 'flex-start',
+                            transition: 'color 0.2s'
+                          }}
+                        >
+                          {cat.label}
+                          {categoryFilter === cat.id && (
+                            <motion.div 
+                              layoutId="categoryDot" 
+                              style={{ width: '4px', height: '4px', borderRadius: '50px', backgroundColor: 'var(--text-charcoal)', marginTop: '4px', alignSelf: 'center' }} 
+                            />
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-              {/* Number of Guests */}
-              <div className="form-group" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+                {/* Right Product Grid */}
                 <div>
-                  <label className="form-label">Number of Guests</label>
-                  <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-light)' }}>
-                    <Users size={16} style={{ marginRight: '0.75rem', color: 'var(--text-muted)' }} />
-                    <select
-                      name="guests"
-                      value={formData.guests}
-                      onChange={handleInputChange}
-                      className="form-input"
-                      style={{ border: 'none', padding: '0.85rem 0' }}
-                    >
-                      {[1, 2, 3, 4].map(n => (
-                        <option key={n} value={n}>{n} {n === 1 ? 'Guest' : 'Guests'}</option>
-                      ))}
-                    </select>
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(3, 1fr)', 
+                    gap: '2.5rem' 
+                  }} className="grid-products-mobile">
+                    {filteredTours.map((t) => {
+                      // Find matching tour index in original list
+                      const tourIndex = tours.findIndex(original => original.id === t.id);
+                      return (
+                        <div 
+                          key={t.id}
+                          onClick={() => {
+                            setActiveTourIndex(tourIndex);
+                            setView('detail');
+                          }}
+                          style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', textAlign: 'left' }}
+                          className="catalog-product-card"
+                        >
+                          {/* Image Box */}
+                          <div style={{ 
+                            position: 'relative', 
+                            overflow: 'hidden', 
+                            borderRadius: '4px',
+                            backgroundColor: 'var(--bg-sand-light)',
+                            aspectRatio: '4/5',
+                            marginBottom: '1.25rem',
+                            border: '1px solid var(--border-light)'
+                          }}>
+                            {/* Black Category Badge */}
+                            <span style={{
+                              position: 'absolute',
+                              top: '12px',
+                              left: '12px',
+                              zIndex: 10,
+                              backgroundColor: 'var(--text-charcoal)',
+                              color: 'var(--bg-alabaster)',
+                              padding: '0.35rem 0.75rem',
+                              fontSize: '0.7rem',
+                              fontWeight: '600',
+                              letterSpacing: '0.1em',
+                              borderRadius: '2px',
+                              fontFamily: 'var(--font-sans)'
+                            }}>
+                              {t.badge}
+                            </span>
+
+                            {/* Zooming Image */}
+                            <motion.div
+                              whileHover={{ scale: 1.06 }}
+                              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                              style={{
+                                backgroundImage: `url("${t.images[0]}")`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                width: '100%',
+                                height: '100%'
+                              }}
+                            />
+                          </div>
+
+                          {/* Info Text */}
+                          <h3 style={{ 
+                            fontFamily: 'var(--font-serif)', 
+                            fontSize: '1.3rem', 
+                            fontWeight: '500', 
+                            color: 'var(--text-charcoal)',
+                            marginBottom: '0.25rem',
+                            lineHeight: '1.2'
+                          }}>
+                            {t.title}
+                          </h3>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                            <span>{t.duration}</span>
+                            <span style={{ fontWeight: '600', color: 'var(--accent-terracotta)' }}>
+                              Rates on Request
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
+
               </div>
-
-              {/* Full Name */}
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-light)' }}>
-                  <User size={16} style={{ marginRight: '0.75rem', color: 'var(--text-muted)' }} />
-                  <input
-                    type="text"
-                    name="fullName"
-                    placeholder="Enter your name"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    style={{ border: 'none', padding: '0.85rem 0' }}
-                  />
-                </div>
-                {formErrors.fullName && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.fullName}</span>}
-              </div>
-
-              {/* Email Address */}
-              <div className="form-group">
-                <label className="form-label">Email Address</label>
-                <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid var(--border-light)' }}>
-                  <Mail size={16} style={{ marginRight: '0.75rem', color: 'var(--text-muted)' }} />
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="form-input"
-                    style={{ border: 'none', padding: '0.85rem 0' }}
-                  />
-                </div>
-                {formErrors.email && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.email}</span>}
-              </div>
-
-              {/* Notes */}
-              <div className="form-group">
-                <label className="form-label">Dietary / Physical Accessibility Notes</label>
-                <textarea
-                  name="notes"
-                  rows={2}
-                  placeholder="Optional preferences..."
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  style={{ resize: 'none' }}
-                />
-              </div>
-
-              {/* Price Calculation Display */}
-              {selectedTourData && (
-                <div style={{
-                  backgroundColor: 'var(--bg-sand-light)',
-                  padding: '1.25rem',
-                  borderRadius: '12px',
-                  marginBottom: '2rem',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: '0.95rem'
-                }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Estimated Investment</span>
-                  <span style={{ fontWeight: 600, color: 'var(--text-charcoal)', fontSize: '1.1rem' }}>
-                    ${selectedTourData.price * parseInt(formData.guests)} USD
-                  </span>
-                </div>
-              )}
-
-              {/* Submit CTA */}
+            </motion.div>
+          ) : (
+            
+            /* VIEW 2: PRODUCT DETAIL VIEW (Image 1 layout) */
+            <motion.div
+              key="detail-view"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {/* Back button */}
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="button-primary"
-                style={{ width: '100%', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+                onClick={() => {
+                  setView('collection');
+                  onClearTourSelection();
+                }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  color: 'var(--text-muted)',
+                  marginBottom: '2.5rem',
+                  padding: '0.5rem 0',
+                  fontWeight: '500',
+                  transition: 'color 0.2s'
+                }}
+                className="back-btn-hover"
               >
-                {isSubmitting ? 'Securing Spot...' : 'Request Reservation'} <ArrowRight size={16} />
+                <ArrowLeft size={16} /> Back to Collection
               </button>
 
-            </form>
+              {/* 12-Column Grid */}
+              <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(12, 1fr)', 
+                gap: '4rem',
+                alignItems: 'start'
+              }} className="grid-booking-layout">
+                
+                {/* LEFT SIDE: Image Gallery & Clickable thumbnails */}
+                <div style={{ gridColumn: 'span 7' }} className="col-12-mobile">
+                  
+                  {/* Large Main Active Image */}
+                  <div style={{ 
+                    overflow: 'hidden', 
+                    borderRadius: '4px', 
+                    height: '520px', 
+                    backgroundColor: 'var(--bg-sand-light)',
+                    border: '1px solid var(--border-light)',
+                    boxShadow: '0 20px 45px rgba(0,0,0,0.03)',
+                    marginBottom: '1.5rem',
+                    position: 'relative'
+                  }} className="main-detail-image-box">
+                    <motion.div
+                      key={activeTour.id + '-' + activeImageIndex}
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      style={{
+                        backgroundImage: `url("${activeTour.images[activeImageIndex]}")`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        width: '100%',
+                        height: '100%'
+                      }}
+                    />
+                    {/* Prev/Next Arrow Buttons */}
+                    {activeTour.images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => setActiveImageIndex(i => (i - 1 + activeTour.images.length) % activeTour.images.length)}
+                          style={{
+                            position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)',
+                            width: '40px', height: '40px', borderRadius: '50%',
+                            backgroundColor: 'rgba(255,255,255,0.85)', border: 'none',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'all 0.2s',
+                            color: 'var(--text-charcoal)', fontSize: '1.2rem', fontWeight: 700
+                          }}
+                          className="img-nav-btn"
+                          aria-label="Previous image"
+                        >‹</button>
+                        <button
+                          onClick={() => setActiveImageIndex(i => (i + 1) % activeTour.images.length)}
+                          style={{
+                            position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)',
+                            width: '40px', height: '40px', borderRadius: '50%',
+                            backgroundColor: 'rgba(255,255,255,0.85)', border: 'none',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', transition: 'all 0.2s',
+                            color: 'var(--text-charcoal)', fontSize: '1.2rem', fontWeight: 700
+                          }}
+                          className="img-nav-btn"
+                          aria-label="Next image"
+                        >›</button>
+                        {/* Image counter */}
+                        <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '0.75rem', fontWeight: 600, padding: '0.25rem 0.6rem', borderRadius: '50px' }}>
+                          {activeImageIndex + 1} / {activeTour.images.length}
+                        </div>
+                      </>
+                    )}
+                  </div>
 
-          </div>
-        </div>
+                  {/* Thumbnail Selector Row */}
+                  <div style={{ 
+                    display: 'flex', 
+                    gap: '1rem', 
+                    width: '100%' 
+                  }}>
+                    {activeTour.images.map((img, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveImageIndex(idx)}
+                        style={{
+                          flex: 1,
+                          aspectRatio: '4/3',
+                          borderRadius: '4px',
+                          overflow: 'hidden',
+                          cursor: 'pointer',
+                          backgroundColor: 'var(--bg-sand-light)',
+                          border: activeImageIndex === idx ? '2px solid var(--text-charcoal)' : '1px solid var(--border-light)',
+                          transition: 'border 0.2s',
+                          boxShadow: '0 5px 15px rgba(0,0,0,0.02)'
+                        }}
+                      >
+                        <div
+                          style={{
+                            backgroundImage: `url("${img}")`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            width: '100%',
+                            height: '100%'
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Trust Badge / Details Box */}
+                  <div style={{ 
+                    backgroundColor: 'var(--bg-sand-light)', 
+                    borderRadius: '8px', 
+                    padding: '2rem', 
+                    border: '1px solid var(--border-light)',
+                    marginTop: '2.5rem',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '1.25rem',
+                    textAlign: 'left'
+                  }}>
+                    <Feather size={24} style={{ color: 'var(--accent-terracotta)', flexShrink: 0, marginTop: '0.2rem' }} />
+                    <div>
+                      <h5 style={{ fontFamily: 'var(--font-sans)', fontSize: '1rem', fontWeight: 600, color: 'var(--text-charcoal)', marginBottom: '0.4rem' }}>
+                        Boutique Micro-Group Guarantee
+                      </h5>
+                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                        Pledging a strict limit of 8 participants per tour. Your homestay and transfers are coordinated directly with local hosts for an authentic, homely experience.
+                      </p>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* RIGHT SIDE: Product Description, Details & Purchase Form */}
+                <div style={{ gridColumn: 'span 5', textAlign: 'left' }} className="col-12-mobile">
+                  
+                  {/* Tour Header */}
+                  <div style={{ marginBottom: '2rem' }}>
+                    <h1 style={{ 
+                      fontFamily: 'var(--font-sans)', 
+                      fontSize: '2.5rem', 
+                      fontWeight: 850, 
+                      color: 'var(--text-charcoal)',
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.02em',
+                      marginBottom: '0.5rem'
+                    }}>
+                      {activeTour.title}
+                    </h1>
+                    <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--accent-terracotta)', display: 'block', fontWeight: 600 }}>
+                      {activeTour.tagline}
+                    </span>
+                    
+                    {/* Price Block (On Request) */}
+                    <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'baseline' }}>
+                      <span style={{ 
+                        fontFamily: 'var(--font-sans)', 
+                        fontSize: '1.3rem', 
+                        fontWeight: '700', 
+                        color: 'var(--accent-terracotta)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                      }}>
+                        Rates on Request
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Core Specs Grid */}
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr', 
+                    gap: '1.25rem 1rem', 
+                    marginBottom: '2rem',
+                    borderTop: '1px solid var(--border-light)',
+                    borderBottom: '1px solid var(--border-light)',
+                    padding: '1.5rem 0'
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>Tour Time</span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-charcoal)', marginTop: '0.15rem' }}>{activeTour.duration}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>Best Time</span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-charcoal)', marginTop: '0.15rem' }}>{activeTour.bestTime}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>Difficulty</span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-charcoal)', marginTop: '0.15rem' }}>{activeTour.difficulty}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em' }}>Landscape</span>
+                      <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-charcoal)', marginTop: '0.15rem' }}>{activeTour.landscape}</span>
+                    </div>
+                  </div>
+
+                  {/* Long Description */}
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2.5rem' }}>
+                    {activeTour.description}
+                  </p>
+
+                  {/* Interactive Booking widget Form */}
+                  <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '2rem' }}>
+                    
+                    <form onSubmit={handleSubmit}>
+                      
+                      {/* Name input - LAIBA style underline */}
+                      <div className="form-group" style={{ marginBottom: '1.75rem' }}>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>FULL NAME</label>
+                        <input
+                          type="text"
+                          name="fullName"
+                          placeholder="Enter your name"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          className="form-input"
+                          style={{ 
+                            borderBottom: formErrors.fullName ? '1px solid var(--accent-terracotta)' : '1px solid var(--text-charcoal)', 
+                            fontSize: '1.05rem', 
+                            padding: '0.5rem 0',
+                            fontWeight: '500'
+                          }}
+                        />
+                        {formErrors.fullName && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.fullName}</span>}
+                      </div>
+
+                      {/* Phone Input - LAIBA style underline */}
+                      <div className="form-group" style={{ marginBottom: '1.75rem' }}>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>PHONE NUMBER</label>
+                        <input
+                          type="tel"
+                          name="phone"
+                          placeholder="Enter phone number"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="form-input"
+                          style={{ 
+                            borderBottom: formErrors.phone ? '1px solid var(--accent-terracotta)' : '1px solid var(--text-charcoal)', 
+                            fontSize: '1.05rem', 
+                            padding: '0.5rem 0',
+                            fontWeight: '500'
+                          }}
+                        />
+                        {formErrors.phone && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.phone}</span>}
+                      </div>
+
+                      {/* Date Select Dropdown */}
+                      <div className="form-group" style={{ marginBottom: '1.75rem' }}>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>SELECT DATE WINDOW</label>
+                        <select
+                          name="date"
+                          value={formData.date}
+                          onChange={handleInputChange}
+                          className="form-input"
+                          style={{ 
+                            borderBottom: '1px solid var(--text-charcoal)', 
+                            fontSize: '1.05rem', 
+                            padding: '0.5rem 0',
+                            fontWeight: '500',
+                            appearance: 'none', 
+                            cursor: 'pointer', 
+                            backgroundImage: 'url("data:image/svg+xml;utf8,<svg xmlns=%27http://www.w3.org/2000/svg%27 width=%2724%27 height=%2724%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%231c1b18%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27><polyline points=%276 9 12 15 18 9%27></polyline></svg>")', 
+                            backgroundRepeat: 'no-repeat', 
+                            backgroundPosition: 'right center', 
+                            backgroundSize: '16px' 
+                          }}
+                        >
+                          {activeTour.dates.map(date => (
+                            <option key={date} value={date}>{date}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Description / Special Requests optional */}
+                      <div className="form-group" style={{ marginBottom: '1.75rem' }}>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>DESCRIPTION / EXTRA NOTES (OPTIONAL)</label>
+                        <textarea
+                          name="description"
+                          rows={2}
+                          placeholder="Tell us about any accessibility needs or special homestay requests..."
+                          value={formData.description}
+                          onChange={handleInputChange}
+                          className="form-input"
+                          style={{ 
+                            borderBottom: '1px solid var(--text-charcoal)', 
+                            fontSize: '1.05rem', 
+                            padding: '0.5rem 0',
+                            fontWeight: '500',
+                            resize: 'none'
+                          }}
+                        />
+                      </div>
+
+                      {/* Select Quantity Widget (Guests counter) */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', margin: '2rem 0' }}>
+                        <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          Select Quantity
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--text-charcoal)', borderRadius: '2px', backgroundColor: '#fff' }}>
+                          <button 
+                            type="button" 
+                            onClick={decrementGuests}
+                            style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', fontWeight: '500' }}
+                          >
+                            -
+                          </button>
+                          <span style={{ width: '40px', textAlign: 'center', fontWeight: '700', fontSize: '1.1rem', color: 'var(--text-charcoal)' }}>
+                            {guests}
+                          </span>
+                          <button 
+                            type="button" 
+                            onClick={incrementGuests}
+                            style={{ width: '40px', height: '40px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.2rem', fontWeight: '500' }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Urgent Spots Remaining (LAIBA style red banner text) */}
+                      <div style={{ 
+                        color: '#E53E3E', 
+                        fontFamily: 'var(--font-sans)', 
+                        fontSize: '0.8rem', 
+                        fontWeight: '700', 
+                        letterSpacing: '0.05em', 
+                        marginBottom: '2rem',
+                        textTransform: 'uppercase'
+                      }}>
+                        ONLY {activeTour.spotsRemaining} SPOTS REMAINING
+                      </div>
+
+                      {/* Large Solid Black Add-to-Collection style Button */}
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="ecommerce-cta-btn"
+                        style={{
+                          width: '100%',
+                          backgroundColor: 'var(--text-charcoal)',
+                          color: 'var(--bg-alabaster)',
+                          padding: '1.25rem 2rem',
+                          fontSize: '0.95rem',
+                          fontWeight: '600',
+                          border: 'none',
+                          cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.75rem',
+                          transition: 'background-color 0.2s, transform 0.2s',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.05em'
+                        }}
+                      >
+                        {isSubmitting ? 'Transmitting Request...' : 'Request Reservation'} <ArrowRight size={16} />
+                      </button>
+
+                    </form>
+                  </div>
+
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
 
-      {/* Success Confirmation Modal Overlay */}
+      {/* Success Confirmation Modal */}
       <AnimatePresence>
         {submitSuccess && (
           <motion.div
@@ -416,7 +791,7 @@ export default function BookTour({ selectedTour, onClearTourSelection }) {
                 backgroundColor: 'var(--bg-alabaster)',
                 maxWidth: '550px',
                 width: '100%',
-                borderRadius: '28px',
+                borderRadius: '4px',
                 padding: '3rem 2.5rem',
                 border: '1px solid var(--border-light)',
                 textAlign: 'center',
@@ -426,20 +801,21 @@ export default function BookTour({ selectedTour, onClearTourSelection }) {
               <div style={{ color: 'var(--accent-terracotta)', display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <CheckCircle size={56} />
               </div>
-              <span className="label-mono" style={{ color: 'var(--accent-terracotta)' }}>Reservation Requested</span>
-              <h3 className="heading-small" style={{ marginTop: '0.5rem', marginBottom: '1.5rem' }}>
-                Flight Spot Secured
+              <span className="label-mono" style={{ color: 'var(--accent-terracotta)', fontWeight: 600 }}>Request Transmitted</span>
+              <h3 className="heading-small" style={{ marginTop: '0.5rem', marginBottom: '1.5rem', fontWeight: 600 }}>
+                Booking Request Logged
               </h3>
               
               <div style={{ 
                 textAlign: 'left', 
                 backgroundColor: 'var(--bg-sand-light)', 
                 padding: '1.5rem', 
-                borderRadius: '16px',
+                borderRadius: '4px',
                 fontSize: '0.9rem',
                 lineHeight: 1.5,
                 color: 'var(--text-charcoal)',
-                marginBottom: '2rem'
+                marginBottom: '2rem',
+                border: '1px solid var(--border-light)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--border-light)', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Ticket Reference</span>
@@ -447,32 +823,50 @@ export default function BookTour({ selectedTour, onClearTourSelection }) {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>Journey</span>
-                  <span>{bookingDetails.tour}</span>
+                  <span>{bookingDetails.tourTitle}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Window</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Date Selected</span>
                   <span>{bookingDetails.date}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>Travellers</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Name</span>
+                  <span>{bookingDetails.fullName}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Phone</span>
+                  <span>{bookingDetails.phone}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem' }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Total People</span>
                   <span>{bookingDetails.guests} {parseInt(bookingDetails.guests) === 1 ? 'Person' : 'People'}</span>
                 </div>
+                {bookingDetails.description && (
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingBottom: '0.5rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>Description/Requests:</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '0.25rem' }}>{bookingDetails.description}</span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: '1px dashed var(--border-light)', fontWeight: 600, color: 'var(--accent-terracotta)' }}>
-                  <span>Total Cost</span>
-                  <span>${bookingDetails.price} USD</span>
+                  <span>Pricing Details</span>
+                  <span>Discuss during contact</span>
                 </div>
               </div>
 
               <p className="body-normal" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>
-                We have sent confirmation logistics and local guide bios to <strong>{bookingDetails.email}</strong>. Our conservation partners in the region have been notified.
+                We have received your booking inquiry. Our slow travel curators will contact you at <strong>{bookingDetails.phone}</strong> to discuss homestay pricing details.
               </p>
 
               <button
-                onClick={() => setSubmitSuccess(false)}
+                onClick={() => {
+                  setSubmitSuccess(false);
+                  setView('collection');
+                  onClearTourSelection();
+                }}
                 className="button-primary"
-                style={{ width: '100%' }}
+                style={{ width: '100%', borderRadius: '2px' }}
               >
-                Close Window
+                Return to Shop
               </button>
             </motion.div>
           </motion.div>
@@ -480,10 +874,58 @@ export default function BookTour({ selectedTour, onClearTourSelection }) {
       </AnimatePresence>
 
       <style>{`
+        .back-btn-hover:hover {
+          color: var(--text-charcoal) !important;
+        }
+        .ecommerce-cta-btn:hover {
+          background-color: var(--accent-terracotta) !important;
+        }
         @media (max-width: 900px) {
-          .grid-booking-mobile {
+          .grid-catalog-mobile {
             grid-template-columns: 1fr !important;
             gap: 2.5rem !important;
+          }
+          .catalog-sidebar-mobile {
+            position: relative !important;
+            top: 0 !important;
+            margin-bottom: 1rem;
+            min-width: 0 !important;
+            width: 100% !important;
+          }
+          .sidebar-list-mobile {
+            flex-direction: row !important;
+            overflow-x: auto;
+            gap: 1.5rem !important;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-light);
+          }
+          .sidebar-list-mobile li {
+            white-space: nowrap;
+          }
+          .grid-products-mobile {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 1.5rem !important;
+          }
+          .grid-booking-layout {
+            grid-template-columns: 1fr !important;
+            gap: 2.5rem !important;
+          }
+          .col-12-mobile {
+            grid-column: 1 / -1 !important;
+          }
+          .main-detail-image-box {
+            height: 320px !important;
+          }
+        }
+        .img-nav-btn:hover {
+          background-color: rgba(255,255,255,1) !important;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.2) !important;
+          transform: translateY(-50%) scale(1.1) !important;
+        }
+        @media (max-width: 600px) {
+          .grid-products-mobile {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
           }
         }
       `}</style>

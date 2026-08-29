@@ -2,27 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, Compass } from 'lucide-react';
 
-export default function ContactUs() {
-  const offices = [
-    {
-      city: 'Edinburgh Outpost',
-      address: '14 Royal Terrace, EH7 5AB',
-      coords: '55.9576° N, 3.1793° W',
-      tel: '+44 131 556 9088'
-    },
-    {
-      city: 'El Chaltén Basecamp',
-      address: 'Avenida San Martín 420, Patagonia',
-      coords: '49.3315° S, 72.8858° W',
-      tel: '+54 2962 493011'
-    },
-    {
-      city: 'Florence Writing Room',
-      address: 'Via de\' Bardi 28, 50125 Firenze',
-      coords: '43.7663° N, 11.2584° E',
-      tel: '+39 055 234 1144'
-    }
-  ];
+export default function ContactUs({ contactContent, onAddContactMessage }) {
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -65,6 +45,10 @@ export default function ContactUs() {
 
     setIsSubmitting(true);
     setTimeout(() => {
+      // Save message to admin state
+      if (onAddContactMessage) {
+        onAddContactMessage({ ...formData });
+      }
       setIsSubmitting(false);
       setSuccess(true);
       setFormData({
@@ -78,7 +62,7 @@ export default function ContactUs() {
   };
 
   return (
-    <section id="contact" className="section-padding" style={{ backgroundColor: 'var(--bg-alabaster)', borderTop: '1px solid var(--border-light)' }}>
+    <section id="contact" className="section-padding" style={{ backgroundColor: 'var(--bg-alabaster)', borderTop: '1px solid var(--border-light)', paddingTop: '120px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Header */}
@@ -98,39 +82,62 @@ export default function ContactUs() {
           gap: '4rem',
           alignItems: 'start'
         }} className="grid-contact-mobile">
-          
-          {/* Coordinates and physical nodes */}
-          <div style={{ gridColumn: 'span 5' }} className="col-12-mobile">
-            <span className="label-mono" style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '2rem' }}>
-              Base Stations
-            </span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-              {offices.map((office, idx) => (
-                <div key={idx} style={{ textAlign: 'left', borderLeft: '1px solid var(--border-light)', paddingLeft: '1.5rem' }}>
-                  <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.25rem', fontWeight: 400, color: 'var(--text-charcoal)' }}>
-                    {office.city}
-                  </h4>
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '0.5rem', 
-                    fontSize: '0.8rem', 
-                    fontFamily: 'monospace', 
-                    color: 'var(--accent-terracotta)',
-                    marginTop: '0.25rem',
-                    marginBottom: '0.75rem' 
-                  }}>
-                    <Compass size={12} /> {office.coords}
-                  </div>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
-                    {office.address}
-                  </p>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-charcoal)', fontWeight: 500 }}>
-                    {office.tel}
-                  </p>
+                   {/* Coordinates and physical nodes */}
+          <div style={{ gridColumn: 'span 5', display: 'flex', flexDirection: 'column', gap: '2rem' }} className="col-12-mobile">
+            
+            {/* Contact Card */}
+            <div style={{ textAlign: 'left', backgroundColor: 'var(--bg-sand-light)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+              <span className="label-mono" style={{ color: 'var(--accent-terracotta)', display: 'block', marginBottom: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                Direct Contact
+              </span>
+              <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--text-charcoal)', marginBottom: '1rem', fontWeight: 500 }}>
+                Meghpiyon Tour & Travels
+              </h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.95rem', color: 'var(--text-charcoal)' }}>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Owner & Proprietor</span>
+                  <span style={{ fontWeight: 600 }}>{contactContent?.ownerName || 'Mr. Amit Roy'}</span>
                 </div>
-              ))}
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Phone Helpline</span>
+                  <a href={`tel:${(contactContent?.phone || '').replace(/\s/g, '')}`} style={{ fontWeight: 600, color: 'var(--accent-terracotta)', transition: 'opacity 0.2s' }} className="hover-link">{contactContent?.phone || '081675 20539'}</a>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Email Address</span>
+                  <a href={`mailto:${contactContent?.email || ''}`} style={{ fontWeight: 600, color: 'var(--accent-terracotta)', transition: 'opacity 0.2s' }} className="hover-link">{contactContent?.email || 'meghpiyontourtravels@gmail.com'}</a>
+                </div>
+                <div>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', display: 'block', fontWeight: 600 }}>Operating Hours</span>
+                  <span style={{ fontWeight: 600 }}>{contactContent?.hours || 'Open 24 hours'}</span>
+                </div>
+              </div>
             </div>
+
+            {/* Address Card */}
+            <div style={{ textAlign: 'left', backgroundColor: 'var(--bg-sand-light)', padding: '2rem', borderRadius: '16px', border: '1px solid var(--border-light)' }}>
+              <span className="label-mono" style={{ color: 'var(--text-muted)', display: 'block', marginBottom: '0.5rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                Head Office
+              </span>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text-charcoal)', lineHeight: 1.6, fontWeight: 500 }}>
+                {contactContent?.address || 'Madon Gopal Tola, Sarisha, Diamond Harbour, West Bengal 743368'}
+              </p>
+            </div>
+
+            {/* Google Map Card */}
+            <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid var(--border-light)', boxShadow: '0 10px 25px rgba(0,0,0,0.02)' }}>
+              <iframe
+                title="Office Location"
+                src={contactContent?.mapEmbedLink || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3693.896792610738!2d88.20231131495333!3d22.215200000000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a02fa4af5555555%3A0xe54d24177d6ba56e!2sSarisha%2C%20West%20Bengal!5e0!3m2!1sen!2sin!4v1625000000000!5m2!1sen!2sin'}
+                width="100%"
+                height="240"
+                style={{ border: 0 }}
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+
           </div>
 
           {/* Form wrapper */}
@@ -243,6 +250,9 @@ export default function ContactUs() {
           .grid-contact-mobile {
             grid-template-columns: 1fr !important;
             gap: 2.5rem !important;
+          }
+          .col-12-mobile {
+            grid-column: 1 / -1 !important;
           }
         }
       `}</style>

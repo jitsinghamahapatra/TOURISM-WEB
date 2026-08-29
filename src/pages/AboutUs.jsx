@@ -1,31 +1,31 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Leaf, Award, Feather, ArrowUpRight } from 'lucide-react';
+import { Leaf, Award, Feather, Home, Utensils, Car, ArrowUpRight } from 'lucide-react';
 
-export default function AboutUs() {
-  const guides = [
+export default function AboutUs({ aboutContent }) {
+  const teamMembers = aboutContent?.teamMembers || [
     {
-      name: 'Ewan Macleod',
-      role: 'Ornithologist & Lead Tracker',
-      desc: 'With 15 years tracing raptor flight paths in the Cairngorms, Ewan translates the language of the skies for our Scottish groups.',
-      specialty: 'Highland Raptors'
+      name: 'Meghpiyon Tour & Travels',
+      role: 'Tour Operator',
+      desc: 'Trusted by families, couples and groups for seamless Sikkim and North Bengal travel. Providing end-to-end arrangements with personal care and humble hospitality.',
+      specialty: 'Sikkim & Darjeeling'
     },
     {
-      name: 'Sofia Alarcon',
-      role: 'Ecology Coordinator',
-      desc: 'Sofia leads our Patagonia projects, studying organic soil restoration and managing our eco-lodge partnerships.',
-      specialty: 'Conservation Biology'
+      name: 'Our Homestay Hosts',
+      role: 'Bengali Heritage Partners',
+      desc: 'Local families who open their warmly themed, Bengali-named rooms to our guests. They prepare fresh homestyle meals and treat every traveler as family.',
+      specialty: 'Cozy Homesteads'
     },
     {
-      name: 'Matteo Ghiberti',
-      role: 'Slow Walk Connoisseur',
-      desc: 'An archaeologist and sommelier, Matteo guides our Tuscan walking paths, weaving heritage stories into daily treks.',
-      specialty: 'Etruscan History'
+      name: 'Mountain Drivers',
+      role: 'High-Altitude Specialists',
+      desc: 'Experienced drivers who know every hairpin turn across the Silk Route and North Sikkim high passes. They prioritize your safety and comfort above all else.',
+      specialty: 'Road Safety Experts'
     }
   ];
 
   return (
-    <section id="about" className="section-padding" style={{ backgroundColor: 'var(--bg-alabaster)', borderTop: '1px solid var(--border-light)' }}>
+    <section id="about" className="section-padding" style={{ backgroundColor: 'var(--bg-alabaster)', borderTop: '1px solid var(--border-light)', paddingTop: '120px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         
         {/* Header Block */}
@@ -34,7 +34,7 @@ export default function AboutUs() {
             Our Heritage
           </span>
           <h2 className="heading-medium" style={{ color: 'var(--text-charcoal)', maxWidth: '800px', marginBottom: '2rem' }}>
-            Restoring the relationship between traveller and terrain.
+            {aboutContent?.storyHeading || 'Slow travel designed with local character.'}
           </h2>
           <div style={{ width: '80px', height: '1px', backgroundColor: 'var(--accent-terracotta)' }} />
         </div>
@@ -62,13 +62,10 @@ export default function AboutUs() {
                 marginBottom: '2rem',
                 lineHeight: 1.4
               }}>
-                Red Kite Tourism was founded in 2018 with a simple realization: the faster tourism moves, the less we actually see.
+                {aboutContent?.storyParagraph1 || 'Meghpiyon Tour and Travels builds unhurried journeys connecting conscious travelers with authentic Himalayan terrains.'}
               </h3>
               <p className="body-normal" style={{ color: 'var(--text-muted)', marginBottom: '1.5rem', textAlign: 'justify' }}>
-                We observed that modern holidays had become checklists. Under the guise of exploration, travelers were rushing from one landmark to another, leaving destinations depleted and returning home exhausted.
-              </p>
-              <p className="body-normal" style={{ color: 'var(--text-muted)', textAlign: 'justify' }}>
-                Named after the red kite bird—whose majestic wings and broad flight spans symbolize graceful, unhurried exploration—we set out to establish a travel design studio. We wanted to build journeys that allow travelers to land softly and soar deeply.
+                {aboutContent?.storyParagraph2 || 'We coordinate complete itineraries from station pick-up to airport drop-off, providing cozy homestays, fresh homestyle local foods, and experienced mountain drivers.'}
               </p>
             </motion.div>
           </div>
@@ -94,10 +91,10 @@ export default function AboutUs() {
                 Our Pledge
               </span>
               <h4 style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', marginBottom: '1.5rem', fontWeight: 400 }}>
-                The 10% Raptor & Meadow Reclamation Fund
+                {aboutContent?.missionTitle || 'Himalayan Conservation & Stewardship'}
               </h4>
               <p className="body-normal" style={{ color: 'var(--text-charcoal)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>
-                We believe in leaving a physical trace of positive impact. Red Kite does not write checks to generic offsets. Instead, 10% of every journey's cost goes to targeted environmental project pools:
+                {aboutContent?.missionDesc || 'We dedicate a portion of every booking to regional ecosystem preservation and local community support.'}
               </p>
               <ul style={{ 
                 listStyle: 'none', 
@@ -108,13 +105,13 @@ export default function AboutUs() {
                 color: 'var(--text-muted)'
               }}>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Feather size={16} style={{ color: 'var(--accent-terracotta)' }} /> Raptor nest protection and feeding stations.
+                  <Home size={16} style={{ color: 'var(--accent-terracotta)' }} /> Authentic Bengali-themed homestay networks.
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Leaf size={16} style={{ color: 'var(--accent-terracotta)' }} /> Seed banking and indigenous meadow replanting.
+                  <Utensils size={16} style={{ color: 'var(--accent-terracotta)' }} /> Local food traditions and homestyle cooking.
                 </li>
                 <li style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Award size={16} style={{ color: 'var(--accent-terracotta)' }} /> Sponsoring training for local rural guide networks.
+                  <Car size={16} style={{ color: 'var(--accent-terracotta)' }} /> Support for experienced mountain driver communities.
                 </li>
               </ul>
             </motion.div>
@@ -122,14 +119,14 @@ export default function AboutUs() {
 
         </div>
 
-        {/* Guides Gallery */}
+        {/* Team Gallery */}
         <div style={{ marginTop: '8rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
             <span className="label-mono" style={{ color: 'var(--accent-terracotta)', display: 'block', marginBottom: '1rem' }}>
-              Your Companions
+              Our Partners
             </span>
             <h2 className="heading-small" style={{ color: 'var(--text-charcoal)' }}>
-              Ethical Storytellers
+              The People Behind Your Journey
             </h2>
           </div>
 
@@ -138,7 +135,7 @@ export default function AboutUs() {
             gridTemplateColumns: 'repeat(3, 1fr)', 
             gap: '2.5rem' 
           }} className="grid-guides-mobile">
-            {guides.map((guide, idx) => (
+            {teamMembers.map((member, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 30 }}
@@ -158,7 +155,7 @@ export default function AboutUs() {
               >
                 <div>
                   <span className="label-mono" style={{ fontSize: '0.7rem', color: 'var(--accent-terracotta)' }}>
-                    {guide.specialty}
+                    {member.specialty}
                   </span>
                   <h4 style={{ 
                     fontFamily: 'var(--font-sans)', 
@@ -168,7 +165,7 @@ export default function AboutUs() {
                     marginBottom: '0.25rem',
                     color: 'var(--text-charcoal)' 
                   }}>
-                    {guide.name}
+                    {member.name}
                   </h4>
                   <p style={{ 
                     fontFamily: 'var(--font-sans)', 
@@ -178,23 +175,11 @@ export default function AboutUs() {
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em'
                   }}>
-                    {guide.role}
+                    {member.role}
                   </p>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.5 }}>
-                    {guide.desc}
+                    {member.desc}
                   </p>
-                </div>
-                <div style={{ 
-                  marginTop: '2rem', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.25rem',
-                  fontSize: '0.85rem',
-                  color: 'var(--accent-terracotta)',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}>
-                  Read Journal <ArrowUpRight size={14} />
                 </div>
               </motion.div>
             ))}
@@ -212,6 +197,9 @@ export default function AboutUs() {
           .grid-guides-mobile {
             grid-template-columns: 1fr !important;
             gap: 1.5rem !important;
+          }
+          .col-12-mobile {
+            grid-column: 1 / -1 !important;
           }
         }
       `}</style>

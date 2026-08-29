@@ -1,16 +1,53 @@
-# React + Vite
+# Meghpiyon Tour & Travels
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> Authentic Himalayan journeys — Sikkim, Darjeeling & the Silk Route  
+> Built with React + Vite | Ready for Vercel deployment
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ?? Deploy to Vercel (One-Click)
 
-## React Compiler
+### Option A — Vercel Dashboard (Recommended)
+1. Push this project to a GitHub repository
+2. Go to [vercel.com](https://vercel.com) ? **New Project**
+3. Import your GitHub repository
+4. Vercel auto-detects **Vite** — no configuration needed
+5. Click **Deploy** — done!
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Option B — Vercel CLI
+```bash
+npm install -g vercel
+vercel login
+vercel --prod
+```
 
-## Expanding the Oxlint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## ?? Local Development
+
+```bash
+npm install
+npm run dev          # Start dev server ? http://localhost:5173
+npm run build        # Production build ? dist/
+npm run preview      # Preview production build locally
+```
+
+---
+
+## ?? Admin Panel
+- Navigate to the site and scroll to the footer ? click **Admin Access**
+- Default password: `123456`
+- Change password from the **Security** tab inside the panel
+
+## ?? Project Structure
+```
+public/              # Static assets (images, logo)
+src/
+  components/        # Navbar, ScrollManager
+  pages/             # Home, AboutUs, BookTour, ContactUs, AdminPanel
+  App.jsx            # Root state, routing, footer
+  index.css          # Global design tokens & styles
+index.html           # SEO meta tags, Open Graph
+vercel.json          # Vercel SPA routing + cache headers
+vite.config.js       # Optimised build with chunk splitting
+```

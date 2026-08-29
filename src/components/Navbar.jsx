@@ -3,10 +3,9 @@ import { useLenis } from '@studio-freight/react-lenis';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ currentPage, setCurrentPage }) {
   const lenis = useLenis();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeSection, setActiveSection] = useState('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -18,38 +17,29 @@ export default function Navbar() {
 
   // Track scroll position to change background transparency
   useEffect(() => {
-    if (!lenis) return;
-
-    const handleScroll = (e) => {
-      setIsScrolled(e.scroll > 50);
-      
-      // Update active section based on scroll offset
-      const scrollPos = e.scroll + window.innerHeight * 0.3;
-      for (const item of navItems) {
-        const el = document.getElementById(item.id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPos >= top && scrollPos < top + height) {
-            setActiveSection(item.id);
-          }
-        }
-      }
+    const handleScroll = () => {
+      const scrollY = lenis ? lenis.scroll : window.scrollY;
+      setIsScrolled(scrollY > 50);
     };
 
-    lenis.on('scroll', handleScroll);
+    if (lenis) {
+      lenis.on('scroll', handleScroll);
+    } else {
+      window.addEventListener('scroll', handleScroll);
+    }
+
     return () => {
-      lenis.off('scroll', handleScroll);
+      if (lenis) {
+        lenis.off('scroll', handleScroll);
+      } else {
+        window.removeEventListener('scroll', handleScroll);
+      }
     };
   }, [lenis]);
 
   const handleNavClick = (id) => {
     setMobileMenuOpen(false);
-    if (lenis) {
-      lenis.scrollTo(`#${id}`, { offset: 0, duration: 1.5 });
-    } else {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    }
+    setCurrentPage(id);
   };
 
   return (
@@ -65,9 +55,9 @@ export default function Navbar() {
           right: 0,
           zIndex: 50,
           transition: 'padding 0.4s ease',
-          padding: isScrolled ? '1rem 2rem' : '1.5rem 3rem',
+          padding: isScrolled ? '0.75rem 2rem' : '1.25rem 3rem',
         }}
-        className={isScrolled ? 'glass-panel' : ''}
+        className={`${isScrolled ? 'glass-panel' : ''} nav-header`}
       >
         <div style={{
           display: 'flex',
@@ -100,11 +90,11 @@ export default function Navbar() {
             <span style={{ 
               fontFamily: 'var(--font-serif)', 
               fontSize: '1.25rem', 
-              fontWeight: '500',
+              fontWeight: '600',
               letterSpacing: '0.05em',
               color: 'var(--text-charcoal)'
             }}>
-              RED KITE
+              MEGHPIYON
             </span>
           </div>
 
@@ -126,12 +116,12 @@ export default function Navbar() {
                   fontWeight: 500,
                   letterSpacing: '0.05em',
                   textTransform: 'uppercase',
-                  color: activeSection === item.id ? 'var(--text-charcoal)' : 'var(--text-muted)',
+                  color: currentPage === item.id ? 'var(--text-charcoal)' : 'var(--text-muted)',
                   transition: 'color 0.3s ease'
                 }}
               >
                 {item.label}
-                {activeSection === item.id && (
+                {currentPage === item.id && (
                   <motion.div
                     layoutId="activeIndicator"
                     style={{
@@ -211,7 +201,7 @@ export default function Navbar() {
                 style={{
                   fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
-                  color: activeSection === item.id ? 'var(--accent-terracotta)' : 'var(--text-charcoal)',
+                  color: currentPage === item.id ? 'var(--accent-terracotta)' : 'var(--text-charcoal)',
                   cursor: 'pointer'
                 }}
               >
@@ -240,6 +230,9 @@ export default function Navbar() {
           }
           .mobile-only {
             display: block;
+          }
+          .nav-header {
+            padding: 0.75rem 1rem !important;
           }
         }
       `}</style>

@@ -1,89 +1,83 @@
-# Implementation Plan: Red Kite Tourism Website
+# Implementation Plan - Admin Panel and Content Management System
 
-Create a premium, editorial-style React website for **Red Kite Tourism**, featuring a Home page, Book Tour page, About Us page, and Contact Us page. The website will incorporate **Minimalism, Organic Modernism, and Editorial Design** aesthetics with smooth scrolling powered by **Lenis** and full viewport/scroll animations powered by **Framer Motion**.
+This plan outlines the design and implementation of an Admin Panel (`AdminPanel.jsx`) with `localStorage`-backed state persistence, allowing real-time edits to all website contents, catalog management, and request monitoring.
 
----
+## Architectural Changes
 
-## User Review Required
+```mermaid
+graph TD
+    App[App.jsx State Control] -->|localStorage Sync| LS[Local Storage]
+    App -->|tours, aboutContent| Home[Home.jsx]
+    App -->|aboutContent| About[AboutUs.jsx]
+    App -->|tours, onAddBooking| Book[BookTour.jsx]
+    App -->|contactContent, onAddMessage| Contact[ContactUs.jsx]
+    App -->|All States & Setters| Admin[AdminPanel.jsx]
+```
 
-> [!IMPORTANT]
-> **Design Language & Assets**:
-> We will adopt a warm, earthy color palette:
-> - Primary Background: `#FAF8F5` (Warm Alabaster)
-> - Primary Text: `#1E1E1C` (Charcoal)
-> - Primary Accent: `#B85C42` (Terracotta Red)
-> - Secondary Accent: `#E2DDD5` (Raw Sand)
-> We will load **Playfair Display** (for elegant editorial headings) and **Inter** (for clean body text) from Google Fonts. Let us know if you have other typeface preferences.
-
----
-
-## Open Questions
-
-1. **Tour Packages**: Do you have specific destinations or themes in mind for the "Book Tour" page (e.g., wild bird watching, alpine trekking, coastal escapes), or should we curate 3–4 standard organic tours?
-2. **Animation Feel**: Would you prefer full page-by-page snap scrolling (CSS scroll snapping) or fluid scrolling with elements fading/scaling in as they enter the screen? (We recommend fluid scrolling with Lenis + Framer Motion scroll reveals for a premium editorial feel).
+To make the website dynamically editable, we will lift the state of tours, page texts, contact info, and booking lists up to `App.jsx`, sync it to `localStorage`, and distribute it down via React props.
 
 ---
 
 ## Proposed Changes
 
-We will build the application using Vite + React. 
+### 1. New Component
 
-### Core Dependencies
-- `lenis`: Modern smooth scroll library.
-- `@lenis/react`: Lenis wrapper for React.
-- `framer-motion`: High-fidelity animation library.
-- `lucide-react`: Modern icons.
+#### [NEW] [AdminPanel.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/AdminPanel.jsx)
+- **Login screen**: Prompts for password (default `123456`). Uses clear error states.
+- **Admin Dashboard Tabs**:
+  - **Booking Requests**: Table of submitted tour reservations (Tour name, Date, Name, Mobile, Quantity, Status: Pending/Accepted/Rejected). Actions to Accept, Reject, or Delete.
+  - **Contact Messages**: Table of contact inquiries (Name, Email, Type, Message) with Mark-as-Read/Delete options.
+  - **Manage Tours (CRUD)**: List of tours. Includes forms to Add, Edit, or Delete tours with fields: Title, Tagline, Description, Image URL, Duration, Best Time, Difficulty, Landscape.
+  - **Edit Pages Content**: Text inputs to edit:
+    - About Us (Story headings, description paragraphs, mission statement).
+    - Contact Us (Proprietor name, phone, email, address, Google Maps embed link).
+    - Footer details and Social links (Instagram, Twitter, Mail).
 
----
+### 2. Centralizing State in App.jsx
 
-### Components & Styling
+#### [MODIFY] [App.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/App.jsx)
+- Initialize all content variables from `localStorage` (with fallback to default Sikkim & Meghpiyon values).
+- Implement state hooks:
+  - `tours`, `aboutContent`, `contactContent`
+  - `bookingRequests` (stores user reservations)
+  - `contactMessages` (stores contact form inputs)
+- Add handlers:
+  - `onAddBookingRequest(req)`
+  - `onAddContactMessage(msg)`
+  - `onUpdateTours(toursList)`
+  - `onUpdateAboutContent(aboutObj)`
+  - `onUpdateContactContent(contactObj)`
+- Integrate the `'admin'` page route rendering `<AdminPanel>`.
+- Add an `"Admin Access"` link in the footer copyright area.
 
-#### [NEW] [index.css](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/index.css)
-Establish the design system:
-- CSS variables for colors (alabaster, charcoal, terracotta, raw sand).
-- Custom font imports (Playfair Display, Inter).
-- Global reset and Lenis smooth scrolling rules.
-- Editorial layout utilities.
+### 3. Component Adaptations
 
-#### [NEW] [ScrollManager.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/components/ScrollManager.jsx)
-Integrate `@lenis/react` at the root level to handle smooth scrolling across all pages.
+#### [MODIFY] [Home.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/Home.jsx)
+- Remove hardcoded default tours and description structures.
+- Accept `tours` and `aboutContent` as props and render them dynamically.
 
-#### [NEW] [Navbar.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/components/Navbar.jsx)
-Sleek, minimal navigation header that hides/reveals on scroll, featuring an organic layout and page controls.
+#### [MODIFY] [AboutUs.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/AboutUs.jsx)
+- Remove hardcoded text descriptions.
+- Accept `aboutContent` as props and render it dynamically.
 
-#### [NEW] [Home.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/pages/Home.jsx)
-- **Hero Section**: Huge bold serif text, immersive nature backgrounds, parallax scroll effects, scroll indicator.
-- **Ethos Section**: Multi-column magazine layout, soft organic transitions, showing how Red Kite represents eco-conscious boutique tourism.
-- **Curated Journeys Section**: Selected signature tour previews with elegant card hover reveals and horizontal entries.
+#### [MODIFY] [ContactUs.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/ContactUs.jsx)
+- Accept `contactContent` and `onAddContactMessage` as props.
+- On contact form submission, trigger `onAddContactMessage(newMsg)` to add the inquiry to the admin inbox, and display the confirmation modal.
 
-#### [NEW] [BookTour.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/pages/BookTour.jsx)
-- Interactive grid of premium tours (e.g., *Shetland Highlands flight*, *Tuscan Hills walk*, *Patagonian Peaks*).
-- Filtering system based on landscape types.
-- A minimalist booking form that slides in organically, capturing dates, travelers, and personal details in a high-end interface.
-
-#### [NEW] [AboutUs.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/pages/AboutUs.jsx)
-- "Our Story" formatted as an editorial column.
-- Storytellers/guides gallery with warm organic hover scaling.
-- Conservation ethos block (highlighting the preservation of the Red Kite bird and natural habitats).
-
-#### [NEW] [ContactUs.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/pages/ContactUs.jsx)
-- Minimalist input form with floating labels and custom underline borders.
-- Contact layout containing location coordinates, email, and social handles in an editorial column grid.
-- Visual maps styled with organic coordinates.
-
-#### [NEW] [App.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/rk2/src/App.jsx)
-Integrate all pages with smooth transitions. Since the site is a single-page flow with sub-sections (or tabbed/routed views), we will build it as a seamless, high-fidelity Single Page App with a header switching active views or scrolling to sections. A unified page state with smooth fades is standard for editorial websites.
+#### [MODIFY] [BookTour.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/BookTour.jsx)
+- Accept `tours` and `onAddBookingRequest` as props.
+- On reservation form submission, trigger `onAddBookingRequest(newReq)` to add the reservation to the admin dashboard, and display the confirmation modal.
 
 ---
 
 ## Verification Plan
 
-### Automated Verification
-- Verify code compiles without errors: `npm run build`
-- Start local development server: `npm run dev` and perform browser-based testing.
+### Automated Build Verification
+- Execute `npm run build` to verify compiling success.
 
-### Manual Verification
-- Verify smooth scrolling (Lenis) on desktop and mobile viewports.
-- Confirm Framer Motion scroll animations trigger accurately as elements cross the viewport threshold.
-- Check form submissions (validation, simulated success state).
-- Check responsive styles from mobile to wide desktop resolutions.
+### Manual Verification Flow
+- Navigate to the page, scroll to the footer, and click **Admin Access**.
+- Log in with `123456`.
+- Add a new tour, edit an existing tour, and verify that changes show up on the Book Tour and Home pages.
+- Submit a booking request as a user, log back into the Admin Panel, and verify the request is logged and can be Accepted/Rejected.
+- Edit Contact details and verify they update on the Contact Us page and footer in real-time.
