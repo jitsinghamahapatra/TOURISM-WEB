@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ScrollManager from './components/ScrollManager';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import AboutUs from './pages/AboutUs';
 import BookTour from './pages/BookTour';
 import ContactUs from './pages/ContactUs';
+import AdminPanel from './pages/AdminPanel';
 import { ArrowUp, Mail, Compass } from 'lucide-react';
 import { useLenis } from 'lenis/react';
 
@@ -28,7 +30,7 @@ const Facebook = ({ size = 24, ...props }) => (
   </svg>
 );
 
-import AdminPanel from './pages/AdminPanel';
+
 
 const defaultTours = [
   {
@@ -88,6 +90,7 @@ const defaultContactContent = {
 function AppContent() {
   const [currentPage, setCurrentPage] = useState('home');
   const [selectedTour, setSelectedTour] = useState(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const lenis = useLenis();
 
   // Centralized State
@@ -137,17 +140,32 @@ function AppContent() {
     localStorage.setItem('meghpiyon_messages', JSON.stringify(contactMessages));
   }, [contactMessages]);
 
-  // Scroll to top when page changes
+  // Initial site load loader
   useEffect(() => {
-    if (lenis) {
-      lenis.scrollTo(0, { duration: 0.8, immediate: true });
-    } else {
-      window.scrollTo({ top: 0 });
-    }
-  }, [currentPage, lenis]);
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 750);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Smooth page navigation with custom loader
+  const navigateToPage = (newPage) => {
+    if (newPage === currentPage && !selectedTour) return;
+    setIsPageLoading(true);
+    setTimeout(() => {
+      setCurrentPage(newPage);
+      if (lenis) {
+        lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo({ top: 0 });
+      }
+      setIsPageLoading(false);
+    }, 450);
+  };
 
   const handleSelectTour = (tourName) => {
     setSelectedTour(tourName);
+    navigateToPage('tours');
   };
 
   const handleClearTourSelection = () => {
@@ -182,12 +200,31 @@ function AppContent() {
 
   return (
     <>
+      {/* Global Page Loader Overlay */}
+      <AnimatePresence>
+        {isPageLoading && (
+          <motion.div
+            key="page-loader-screen"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="page-loader-screen"
+          >
+            <div className="loader"></div>
+            <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>
+              <p className="loader-brand-title">MEGHPIYON</p>
+              <p className="loader-tagline">Slow, Conscious & Restorative Journeys</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Global Header Navigation */}
       <Navbar 
         currentPage={currentPage} 
         setCurrentPage={(page) => {
           if (page === 'tours') setSelectedTour(null);
-          setCurrentPage(page);
+          navigateToPage(page);
         }} 
       />
 
@@ -198,7 +235,7 @@ function AppContent() {
             tours={tours} 
             aboutContent={aboutContent}
             onSelectTour={handleSelectTour} 
-            onNavigate={setCurrentPage} 
+            onNavigate={navigateToPage} 
           />
         )}
         {currentPage === 'about' && (
@@ -283,19 +320,19 @@ function AppContent() {
               <h5 className="label-mono" style={{ color: '#fff', fontSize: '0.75rem', marginBottom: '1.5rem' }}>Explore</h5>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
                 <li>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('home'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">Home</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); navigateToPage('home'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">Home</a>
                 </li>
                 <li>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('about'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">About Us</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); navigateToPage('about'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">About Us</a>
                 </li>
                 <li>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('tours'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">Book Tour</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); navigateToPage('tours'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">Book Tour</a>
                 </li>
                 <li>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('contact'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">Contact Us</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); navigateToPage('contact'); }} style={{ color: '#8c877f', transition: 'color 0.3s' }} className="footer-link">Contact Us</a>
                 </li>
                 <li>
-                  <a href="#" onClick={(e) => { e.preventDefault(); setCurrentPage('admin'); }} style={{ color: '#8c877f', transition: 'color 0.3s', fontWeight: 600 }} className="footer-link">Admin Access</a>
+                  <a href="#" onClick={(e) => { e.preventDefault(); navigateToPage('admin'); }} style={{ color: '#8c877f', transition: 'color 0.3s', fontWeight: 600 }} className="footer-link">Admin Access</a>
                 </li>
               </ul>
             </div>

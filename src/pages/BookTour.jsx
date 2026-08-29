@@ -129,7 +129,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
     }
   };
 
-  const incrementGuests = () => setGuests(prev => Math.min(8, prev + 1));
+  const incrementGuests = () => setGuests(prev => prev + 1);
   const decrementGuests = () => setGuests(prev => Math.max(1, prev - 1));
 
   const validateForm = () => {
@@ -141,7 +141,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
       errors.phone = 'Please enter a valid phone number';
     }
     if (!formData.date) {
-      errors.date = 'Please select a travel date';
+      errors.date = 'Please select your preferred travel date from the calendar';
     }
     return errors;
   };
@@ -237,43 +237,30 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
               }} className="grid-catalog-mobile">
                 
                 {/* Left Sidebar Filter Categories */}
-                <div style={{ position: 'sticky', top: '120px' }} className="catalog-sidebar-mobile">
-                  <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '1.5rem', fontWeight: 600 }}>
+                <div className="catalog-sidebar-mobile">
+                  <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '1.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                     Categories
                   </span>
                   
-                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '1.25rem' }} className="sidebar-list-mobile">
-                    {categories.map(cat => (
-                      <li key={cat.id}>
+                  <div className="categories-pills-list">
+                    {categories.map(cat => {
+                      const isSelected = categoryFilter === cat.id;
+                      const count = cat.id === 'All' 
+                        ? tours.length 
+                        : tours.filter(t => t.difficulty.toLowerCase().includes(cat.id.toLowerCase())).length;
+                      return (
                         <button
+                          key={cat.id}
+                          type="button"
                           onClick={() => setCategoryFilter(cat.id)}
-                          style={{
-                            border: 'none',
-                            background: 'transparent',
-                            fontFamily: 'var(--font-sans)',
-                            fontSize: '1.05rem',
-                            fontWeight: categoryFilter === cat.id ? '600' : '400',
-                            color: categoryFilter === cat.id ? 'var(--text-charcoal)' : 'var(--text-muted)',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            padding: '0.25rem 0',
-                            display: 'inline-flex',
-                            flexDirection: 'column',
-                            alignItems: 'flex-start',
-                            transition: 'color 0.2s'
-                          }}
+                          className={`category-pill-item ${isSelected ? 'active' : ''}`}
                         >
-                          {cat.label}
-                          {categoryFilter === cat.id && (
-                            <motion.div 
-                              layoutId="categoryDot" 
-                              style={{ width: '4px', height: '4px', borderRadius: '50px', backgroundColor: 'var(--text-charcoal)', marginTop: '4px', alignSelf: 'center' }} 
-                            />
-                          )}
+                          <span className="category-pill-name">{cat.label}</span>
+                          <span className="category-pill-badge">{count}</span>
                         </button>
-                      </li>
-                    ))}
-                  </ul>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Right Product Grid */}
@@ -643,24 +630,27 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                         {formErrors.phone && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.phone}</span>}
                       </div>
 
-                      {/* Date Select Calendar */}
+                      {/* Date Picker — calendar */}
                       <div className="form-group" style={{ marginBottom: '1.75rem' }}>
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>SELECT DATE</label>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <Calendar size={14} /> TRAVEL DATE (CALENDAR)
+                        </label>
                         <input
                           type="date"
                           name="date"
                           value={formData.date}
                           onChange={handleInputChange}
-                          className="form-input"
+                          min={new Date().toISOString().split('T')[0]}
+                          className="form-input date-picker-input"
                           style={{ 
                             borderBottom: formErrors.date ? '1px solid var(--accent-terracotta)' : '1px solid var(--text-charcoal)', 
                             fontSize: '1.05rem', 
                             padding: '0.5rem 0',
                             fontWeight: '500',
-                            backgroundColor: 'transparent',
+                            width: '100%',
+                            cursor: 'pointer',
                             color: 'var(--text-charcoal)'
                           }}
-                          required
                         />
                         {formErrors.date && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.date}</span>}
                       </div>
@@ -685,27 +675,57 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                         />
                       </div>
 
-                      {/* Number of People Input */}
+                      {/* Number of People */}
                       <div className="form-group" style={{ marginBottom: '1.75rem' }}>
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>NUMBER OF PEOPLE</label>
-                        <input
-                          type="number"
-                          name="guests"
-                          min="1"
-                          value={guests}
-                          onChange={(e) => setGuests(Math.max(1, parseInt(e.target.value) || 1))}
-                          className="form-input"
-                          style={{
-                            borderBottom: '1px solid var(--text-charcoal)',
-                            fontSize: '1.05rem',
-                            padding: '0.5rem 0',
-                            fontWeight: '500',
-                            backgroundColor: 'transparent',
-                            color: 'var(--text-charcoal)',
-                            width: '100%'
-                          }}
-                          required
-                        />
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <Users size={14} /> TOTAL NUMBER OF PEOPLE (ANY AMOUNT)
+                        </label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--text-charcoal)', borderRadius: '4px', backgroundColor: '#fff', overflow: 'hidden' }}>
+                            <button 
+                              type="button" 
+                              onClick={decrementGuests}
+                              title="Decrease People"
+                              style={{ width: '44px', height: '44px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.3rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              -
+                            </button>
+                            <input
+                              type="number"
+                              name="guests"
+                              min="1"
+                              value={guests}
+                              onChange={e => {
+                                const val = parseInt(e.target.value);
+                                setGuests(isNaN(val) || val < 1 ? 1 : val);
+                              }}
+                              className="form-input"
+                              style={{ 
+                                width: '70px', 
+                                textAlign: 'center', 
+                                border: 'none',
+                                borderLeft: '1px solid var(--border-light)',
+                                borderRight: '1px solid var(--border-light)',
+                                padding: '0.5rem 0',
+                                fontWeight: '700', 
+                                fontSize: '1.15rem', 
+                                color: 'var(--text-charcoal)',
+                                outline: 'none'
+                              }}
+                            />
+                            <button 
+                              type="button" 
+                              onClick={incrementGuests}
+                              title="Increase People"
+                              style={{ width: '44px', height: '44px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.3rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            {guests === 1 ? '1 Person (Solo / Couple / Group welcome)' : `${guests} Persons in total`}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Urgent Spots Remaining (LAIBA style red banner text) */}
@@ -721,7 +741,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                         ONLY {activeTour.spotsRemaining} SPOTS REMAINING
                       </div>
 
-                      {/* Large Solid Black Add-to-Collection style Button */}
+                      {/* Submit Button with blob loader */}
                       <button
                         type="submit"
                         disabled={isSubmitting}
@@ -741,10 +761,19 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                           gap: '0.75rem',
                           transition: 'background-color 0.2s, transform 0.2s',
                           textTransform: 'uppercase',
-                          letterSpacing: '0.05em'
+                          letterSpacing: '0.05em',
+                          position: 'relative',
+                          overflow: 'hidden'
                         }}
                       >
-                        {isSubmitting ? 'Transmitting Request...' : 'Request Reservation'} <ArrowRight size={16} />
+                        {isSubmitting ? (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <span className="book-loader" />
+                            Sending...
+                          </span>
+                        ) : (
+                          <><ArrowRight size={16} /> Request Reservation</>
+                        )}
                       </button>
 
                     </form>
@@ -752,34 +781,6 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
 
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Submitting Loading Overlay */}
-        <AnimatePresence>
-          {isSubmitting && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                position: 'fixed',
-                inset: 0,
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(8px)',
-                zIndex: 9999,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1.5rem'
-              }}
-            >
-              <div className="loader"></div>
-              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-charcoal)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                Transmitting Request...
-              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -903,27 +904,95 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
         .ecommerce-cta-btn:hover {
           background-color: var(--accent-terracotta) !important;
         }
+        /* Categories Pills Styles */
+        .catalog-sidebar-mobile {
+          position: sticky;
+          top: 120px;
+        }
+        .categories-pills-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .category-pill-item {
+          display: flex;
+          align-items: center;
+          justifyContent: space-between;
+          padding: 0.75rem 1rem;
+          border-radius: 8px;
+          border: 1px solid transparent;
+          background: transparent;
+          font-family: var(--font-sans);
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: left;
+          width: 100%;
+        }
+        .category-pill-item:hover {
+          background: var(--bg-sand-light);
+          color: var(--text-charcoal);
+        }
+        .category-pill-item.active {
+          background: var(--text-charcoal);
+          color: #ffffff;
+          font-weight: 600;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .category-pill-badge {
+          font-size: 0.75rem;
+          padding: 0.15rem 0.5rem;
+          border-radius: 999px;
+          background: var(--bg-sand);
+          color: var(--text-charcoal);
+          font-weight: 600;
+        }
+        .category-pill-item.active .category-pill-badge {
+          background: rgba(255, 255, 255, 0.25);
+          color: #ffffff;
+        }
+
         @media (max-width: 900px) {
           .grid-catalog-mobile {
             grid-template-columns: 1fr !important;
-            gap: 2.5rem !important;
+            gap: 2rem !important;
           }
           .catalog-sidebar-mobile {
             position: relative !important;
             top: 0 !important;
-            margin-bottom: 1rem;
-            min-width: 0 !important;
+            margin-bottom: 1.5rem !important;
             width: 100% !important;
           }
-          .sidebar-list-mobile {
+          .categories-pills-list {
             flex-direction: row !important;
-            overflow-x: auto;
-            gap: 1.5rem !important;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-light);
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+            padding: 0.25rem 0.25rem 0.75rem !important;
+            gap: 0.6rem !important;
           }
-          .sidebar-list-mobile li {
-            white-space: nowrap;
+          .categories-pills-list::-webkit-scrollbar {
+            display: none !important;
+          }
+          .category-pill-item {
+            width: auto !important;
+            flex-shrink: 0 !important;
+            padding: 0.55rem 1rem !important;
+            border-radius: 9999px !important;
+            border: 1px solid var(--border-light) !important;
+            background: #ffffff !important;
+            font-size: 0.85rem !important;
+            gap: 0.5rem !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+          }
+          .category-pill-item.active {
+            background: var(--text-charcoal) !important;
+            border-color: var(--text-charcoal) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
           }
           .grid-products-mobile {
             grid-template-columns: 1fr 1fr !important;
