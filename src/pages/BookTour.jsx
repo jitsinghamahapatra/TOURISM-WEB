@@ -141,7 +141,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
       errors.phone = 'Please enter a valid phone number';
     }
     if (!formData.date) {
-      errors.date = 'Please select your preferred travel date from the calendar';
+      errors.date = 'Please select your travel date from the calendar';
     }
     return errors;
   };
@@ -237,26 +237,21 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
               }} className="grid-catalog-mobile">
                 
                 {/* Left Sidebar Filter Categories */}
-                <div className="catalog-sidebar-mobile">
-                  <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '1.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Categories
+                <div style={{ position: 'sticky', top: '120px' }} className="catalog-sidebar-mobile">
+                  <span className="label-mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginBottom: '1.25rem', fontWeight: 600, letterSpacing: '0.08em' }}>
+                    CATEGORIES
                   </span>
                   
-                  <div className="categories-pills-list">
+                  <div className="categories-pill-container">
                     {categories.map(cat => {
-                      const isSelected = categoryFilter === cat.id;
-                      const count = cat.id === 'All' 
-                        ? tours.length 
-                        : tours.filter(t => t.difficulty.toLowerCase().includes(cat.id.toLowerCase())).length;
+                      const isActive = categoryFilter === cat.id;
                       return (
                         <button
                           key={cat.id}
-                          type="button"
                           onClick={() => setCategoryFilter(cat.id)}
-                          className={`category-pill-item ${isSelected ? 'active' : ''}`}
+                          className={`category-pill-btn ${isActive ? 'active' : ''}`}
                         >
-                          <span className="category-pill-name">{cat.label}</span>
-                          <span className="category-pill-badge">{count}</span>
+                          {cat.label}
                         </button>
                       );
                     })}
@@ -632,9 +627,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
 
                       {/* Date Picker — calendar */}
                       <div className="form-group" style={{ marginBottom: '1.75rem' }}>
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <Calendar size={14} /> TRAVEL DATE (CALENDAR)
-                        </label>
+                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem' }}>CHOOSE DATE FROM CALENDAR</label>
                         <input
                           type="date"
                           name="date"
@@ -648,8 +641,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                             padding: '0.5rem 0',
                             fontWeight: '500',
                             width: '100%',
-                            cursor: 'pointer',
-                            color: 'var(--text-charcoal)'
+                            cursor: 'pointer'
                           }}
                         />
                         {formErrors.date && <span style={{ color: 'var(--accent-terracotta)', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>{formErrors.date}</span>}
@@ -677,16 +669,21 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
 
                       {/* Number of People */}
                       <div className="form-group" style={{ marginBottom: '1.75rem' }}>
-                        <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <Users size={14} /> TOTAL NUMBER OF PEOPLE (ANY AMOUNT)
-                        </label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--text-charcoal)', borderRadius: '4px', backgroundColor: '#fff', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <label className="form-label" style={{ fontWeight: 600, fontSize: '0.75rem', margin: 0 }}>
+                            TOTAL PEOPLE
+                          </label>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            Min: 1 (No maximum limit)
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', border: '1px solid var(--text-charcoal)', borderRadius: '4px', backgroundColor: '#fff', overflow: 'hidden' }}>
                             <button 
                               type="button" 
                               onClick={decrementGuests}
-                              title="Decrease People"
-                              style={{ width: '44px', height: '44px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.3rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              style={{ width: '42px', height: '42px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '1.25rem', fontWeight: '600', color: 'var(--text-charcoal)' }}
                             >
                               -
                             </button>
@@ -697,16 +694,13 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                               value={guests}
                               onChange={e => {
                                 const val = parseInt(e.target.value);
-                                setGuests(isNaN(val) || val < 1 ? 1 : val);
+                                setGuests(isNaN(val) ? 1 : Math.max(1, val));
                               }}
-                              className="form-input"
                               style={{ 
                                 width: '70px', 
+                                height: '42px', 
+                                border: 'none', 
                                 textAlign: 'center', 
-                                border: 'none',
-                                borderLeft: '1px solid var(--border-light)',
-                                borderRight: '1px solid var(--border-light)',
-                                padding: '0.5rem 0',
                                 fontWeight: '700', 
                                 fontSize: '1.15rem', 
                                 color: 'var(--text-charcoal)',
@@ -716,14 +710,13 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                             <button 
                               type="button" 
                               onClick={incrementGuests}
-                              title="Increase People"
-                              style={{ width: '44px', height: '44px', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.3rem', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              style={{ width: '42px', height: '42px', border: 'none', background: '#f5f5f5', cursor: 'pointer', fontSize: '1.25rem', fontWeight: '600', color: 'var(--text-charcoal)' }}
                             >
                               +
                             </button>
                           </div>
-                          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                            {guests === 1 ? '1 Person (Solo / Couple / Group welcome)' : `${guests} Persons in total`}
+                          <span style={{ fontSize: '0.95rem', fontWeight: '600', color: 'var(--text-charcoal)' }}>
+                            {guests === 1 ? 'Person' : 'People'}
                           </span>
                         </div>
                       </div>
@@ -904,95 +897,92 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
         .ecommerce-cta-btn:hover {
           background-color: var(--accent-terracotta) !important;
         }
-        /* Categories Pills Styles */
-        .catalog-sidebar-mobile {
-          position: sticky;
-          top: 120px;
-        }
-        .categories-pills-list {
+
+        /* Categories Navigation Styling */
+        .categories-pill-container {
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.85rem;
         }
-        .category-pill-item {
-          display: flex;
-          align-items: center;
-          justifyContent: space-between;
-          padding: 0.75rem 1rem;
-          border-radius: 8px;
-          border: 1px solid transparent;
+        .category-pill-btn {
+          border: none;
           background: transparent;
           font-family: var(--font-sans);
-          font-size: 0.95rem;
-          font-weight: 500;
+          font-size: 1.05rem;
+          font-weight: 400;
           color: var(--text-muted);
           cursor: pointer;
-          transition: all 0.2s ease;
           text-align: left;
-          width: 100%;
+          padding: 0.35rem 0;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          position: relative;
         }
-        .category-pill-item:hover {
-          background: var(--bg-sand-light);
+        .category-pill-btn:hover {
           color: var(--text-charcoal);
         }
-        .category-pill-item.active {
-          background: var(--text-charcoal);
-          color: #ffffff;
+        .category-pill-btn.active {
           font-weight: 600;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        }
-        .category-pill-badge {
-          font-size: 0.75rem;
-          padding: 0.15rem 0.5rem;
-          border-radius: 999px;
-          background: var(--bg-sand);
           color: var(--text-charcoal);
-          font-weight: 600;
         }
-        .category-pill-item.active .category-pill-badge {
-          background: rgba(255, 255, 255, 0.25);
-          color: #ffffff;
+        .category-pill-btn.active::before {
+          content: "";
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: var(--accent-terracotta);
+          position: absolute;
+          left: -14px;
         }
 
         @media (max-width: 900px) {
           .grid-catalog-mobile {
             grid-template-columns: 1fr !important;
-            gap: 2rem !important;
+            gap: 1.75rem !important;
           }
           .catalog-sidebar-mobile {
             position: relative !important;
             top: 0 !important;
-            margin-bottom: 1.5rem !important;
+            margin-bottom: 0.5rem;
+            min-width: 0 !important;
             width: 100% !important;
           }
-          .categories-pills-list {
+          .categories-pill-container {
             flex-direction: row !important;
             overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch !important;
+            gap: 0.5rem !important;
+            padding: 0.25rem 0.25rem 0.65rem 0 !important;
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
-            padding: 0.25rem 0.25rem 0.75rem !important;
-            gap: 0.6rem !important;
+            -webkit-overflow-scrolling: touch !important;
           }
-          .categories-pills-list::-webkit-scrollbar {
+          .categories-pill-container::-webkit-scrollbar {
             display: none !important;
+            width: 0 !important;
+            height: 0 !important;
           }
-          .category-pill-item {
-            width: auto !important;
-            flex-shrink: 0 !important;
-            padding: 0.55rem 1rem !important;
-            border-radius: 9999px !important;
-            border: 1px solid var(--border-light) !important;
-            background: #ffffff !important;
+          .category-pill-btn {
+            padding: 0.55rem 1.15rem !important;
+            border-radius: 50px !important;
             font-size: 0.85rem !important;
-            gap: 0.5rem !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            font-weight: 500 !important;
+            white-space: nowrap !important;
+            background-color: var(--bg-sand-light) !important;
+            border: 1px solid var(--border-light) !important;
+            color: var(--text-charcoal) !important;
+            flex-shrink: 0 !important;
+            text-align: center !important;
+            justify-content: center !important;
           }
-          .category-pill-item.active {
-            background: var(--text-charcoal) !important;
-            border-color: var(--text-charcoal) !important;
+          .category-pill-btn.active {
+            background-color: var(--text-charcoal) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            border-color: var(--text-charcoal) !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
+          }
+          .category-pill-btn.active::before {
+            display: none !important;
           }
           .grid-products-mobile {
             grid-template-columns: 1fr 1fr !important;

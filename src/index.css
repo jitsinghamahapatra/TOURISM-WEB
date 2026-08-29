@@ -243,9 +243,7 @@ a {
   display: block;
 }
 
-/* ==========================================================================
-   CUSTOM LIQUID / GOOEY LOADER
-   ========================================================================== */
+/* User Custom Website Loader */
 .loader {
   width: 100px;
   aspect-ratio: 1;
@@ -274,36 +272,5 @@ a {
   50%  {transform: translate(100%,100%)}
   75%  {transform: translate(   0,100%)}
   100% {transform: translate(   0,0)}
-}
-
-/* Page Loader Overlay */
-.page-loader-screen {
-  position: fixed;
-  inset: 0;
-  background-color: #ffffff;
-  z-index: 99999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justifyContent: center;
-  gap: 1.25rem;
-  pointer-events: all;
-}
-
-.loader-brand-title {
-  font-family: var(--font-serif);
-  font-size: 1.15rem;
-  font-weight: 600;
-  letter-spacing: 0.25em;
-  color: var(--text-charcoal);
-  text-transform: uppercase;
-}
-
-.loader-tagline {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  text-transform: uppercase;
 }
 
