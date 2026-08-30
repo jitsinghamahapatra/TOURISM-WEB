@@ -37,6 +37,21 @@ export default function Navbar({ currentPage, setCurrentPage }) {
     };
   }, [lenis]);
 
+  // Disable body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      if (lenis) lenis.stop();
+    } else {
+      document.body.style.overflow = '';
+      if (lenis) lenis.start();
+    }
+    return () => {
+      document.body.style.overflow = '';
+      if (lenis) lenis.start();
+    };
+  }, [mobileMenuOpen, lenis]);
+
   const handleNavClick = (id) => {
     setMobileMenuOpen(false);
     setCurrentPage(id);
@@ -57,7 +72,7 @@ export default function Navbar({ currentPage, setCurrentPage }) {
           transition: 'padding 0.4s ease',
           padding: isScrolled ? '0.75rem 2rem' : '1.25rem 3rem',
         }}
-        className={`${isScrolled ? 'glass-panel' : ''} nav-header`}
+        className={`${isScrolled && !mobileMenuOpen ? 'glass-panel' : ''} nav-header`}
       >
         <div style={{
           display: 'flex',
@@ -172,13 +187,13 @@ export default function Navbar({ currentPage, setCurrentPage }) {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             style={{
               position: 'fixed',
-              top: '60px',
+              top: 0,
               left: 0,
               right: 0,
               bottom: 0,
@@ -188,33 +203,41 @@ export default function Navbar({ currentPage, setCurrentPage }) {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              gap: '2.5rem',
-              padding: '2rem'
+              gap: '2.2rem',
+              padding: '6rem 2rem 2rem 2rem'
             }}
           >
             {navItems.map((item) => (
               <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05, color: 'var(--accent-terracotta)' }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                 key={item.id}
                 onClick={() => handleNavClick(item.id)}
                 style={{
                   fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
                   color: currentPage === item.id ? 'var(--accent-terracotta)' : 'var(--text-charcoal)',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'color 0.2s ease'
                 }}
               >
                 {item.label}
               </motion.div>
             ))}
-            <button 
+            <motion.button 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => handleNavClick('tours')}
               className="button-primary"
-              style={{ marginTop: '2rem' }}
+              style={{ marginTop: '1.5rem' }}
             >
               Book Journeys <ArrowUpRight size={16} />
-            </button>
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
