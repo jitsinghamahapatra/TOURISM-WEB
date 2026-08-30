@@ -240,7 +240,7 @@ function AppContent() {
       />
 
       {/* Main Content Sections */}
-      <main style={{ width: '100%', minHeight: '80vh' }}>
+      <main className="main-content" style={{ width: '100%', minHeight: '80vh' }}>
         {currentPage === 'home' && (
           <Home 
             tours={tours} 
@@ -288,7 +288,7 @@ function AppContent() {
       </main>
 
       {/* Premium Editorial Footer */}
-      <footer style={{
+      <footer className="reveal-footer" style={{
         backgroundColor: 'var(--bg-dark-charcoal)',
         color: 'var(--bg-sand)',
         padding: '5rem 3rem 2rem',
@@ -391,22 +391,14 @@ function AppContent() {
               {/* Back to top button */}
               <button
                 onClick={handleScrollToTop}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'var(--border-dark)',
-                  color: 'var(--bg-sand)',
-                  border: 'none',
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '50px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s'
-                }}
-                className="back-to-top-btn"
+                className="back-to-top-btn-new"
+                title="Back to Top"
               >
-                <ArrowUp size={16} />
+                <svg className="svgIcon" viewBox="0 0 384 512">
+                  <path
+                    d="M214.6 41.4c-12.5-12.5-32.8-12.5-45.3 0l-160 160c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L160 141.2V448c0 17.7 14.3 32 32 32s32-14.3 32-32V141.2L329.4 246.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-160-160z"
+                  ></path>
+                </svg>
               </button>
             </div>
           </div>

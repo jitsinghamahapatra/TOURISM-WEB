@@ -419,5 +419,83 @@ a {
   }
 }
 
+/* Footer Reveal Animation (Desktop Only) */
+@media (min-width: 769px) {
+  .main-content {
+    position: relative;
+    z-index: 10;
+    background-color: var(--bg-alabaster);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+  }
+
+  .reveal-footer {
+    position: sticky !important;
+    bottom: 0;
+    z-index: 1;
+  }
+}
+
+/* Back to Top Button New Design (Uiverse.io adaptation) */
+.back-to-top-btn-new {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--border-dark);
+  border: none;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 0px 0px 4px rgba(184, 92, 66, 0.15);
+  cursor: pointer;
+  transition-duration: 0.3s;
+  overflow: hidden;
+  position: relative;
+  outline: none;
+}
+
+.back-to-top-btn-new .svgIcon {
+  width: 12px;
+  transition-duration: 0.3s;
+}
+
+.back-to-top-btn-new .svgIcon path {
+  fill: var(--bg-sand);
+}
+
+.back-to-top-btn-new:hover {
+  width: 140px;
+  border-radius: 50px;
+  transition-duration: 0.3s;
+  background-color: var(--accent-terracotta);
+  align-items: center;
+  box-shadow: 0px 0px 0px 4px rgba(184, 92, 66, 0.3);
+}
+
+.back-to-top-btn-new:hover .svgIcon {
+  transition-duration: 0.3s;
+  transform: translateY(-40px);
+  opacity: 0;
+}
+
+.back-to-top-btn-new::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  content: "Back to Top";
+  color: #ffffff;
+  font-size: 0px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.back-to-top-btn-new:hover::before {
+  font-size: 13px;
+  opacity: 1;
+}
+
 
 

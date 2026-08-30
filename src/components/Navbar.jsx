@@ -219,7 +219,8 @@ export default function Navbar({ currentPage, setCurrentPage }) {
                 style={{
                   fontFamily: 'var(--font-serif)',
                   fontSize: '2rem',
-                  color: currentPage === item.id ? 'var(--accent-terracotta)' : 'var(--text-charcoal)',
+                  fontWeight: 500,
+                  color: currentPage === item.id ? 'var(--accent-terracotta)' : '#000000',
                   cursor: 'pointer',
                   transition: 'color 0.2s ease'
                 }}
