@@ -573,8 +573,7 @@ export default function Home({ tours, aboutContent, onSelectTour, onNavigate }) 
                   </p>
                   <button 
                     onClick={() => handleBookTourClick(tour.title)}
-                    className="button-secondary"
-                    style={{ borderRadius: '2px', border: '1px solid var(--text-charcoal)' }}
+                    className="btn-diagonal-slide"
                   >
                     View & Configure <ArrowRight size={14} />
                   </button>
