@@ -1,8 +1,3 @@
-- [ ] Build and write AdminPanel.jsx dashboard component
-- [ ] Centralize content state in App.jsx and link to localStorage
-- [ ] Add "Admin Access" navigation trigger to App.jsx footer
-- [ ] Refactor Home.jsx to use dynamic tours and about content props
-- [ ] Refactor AboutUs.jsx to render dynamic description texts
-- [ ] Refactor ContactUs.jsx to render dynamic contact cards and submit messages to state
-- [ ] Refactor BookTour.jsx to use dynamic tours list and submit reservations to state
-- [ ] Verify compiling and test the dashboard actions
+- [ ] Add custom scoped sliding-arrow button CSS classes in `src/index.css`
+- [ ] Replace 'Explore Packages' button HTML structure in `src/pages/Home.jsx`
+- [ ] Verify compiling and test the sliding-arrow animations in the browser

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Compass, Shield, Heart, Star, Check, HelpCircle, ChevronDown, ChevronUp, MapPin, Coffee, Car, ShieldAlert, Award } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Compass, Shield, Heart, Star, Check, HelpCircle, ChevronDown, ChevronUp, MapPin, Coffee, Car, ShieldAlert, Award } from 'lucide-react';
 import { useLenis } from 'lenis/react';
 
 export default function Home({ tours, aboutContent, onSelectTour, onNavigate }) {
@@ -231,14 +231,13 @@ export default function Home({ tours, aboutContent, onSelectTour, onNavigate }) 
           >
             <button 
               onClick={() => handleBookTourClick('All')}
-              className="button-primary hero-cta-primary"
-              style={{
-                backgroundColor: 'var(--accent-terracotta)',
-                borderColor: 'var(--accent-terracotta)',
-                boxShadow: '0 10px 30px rgba(184, 92, 66, 0.25)'
-              }}
+              className="explore-packages-btn hero-cta-primary"
             >
-              Explore Packages <ArrowRight size={16} />
+              Explore Packages
+              <span className="explore-packages-btn__icon-wrapper">
+                <ArrowUpRight className="explore-packages-btn__icon-svg" size={15} />
+                <ArrowUpRight className="explore-packages-btn__icon-svg explore-packages-btn__icon-svg--copy" size={15} />
+              </span>
             </button>
             <button 
               onClick={() => onNavigate('contact')}

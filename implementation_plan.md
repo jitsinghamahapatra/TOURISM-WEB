@@ -1,83 +1,125 @@
-# Implementation Plan - Admin Panel and Content Management System
+# Implementation Plan - Custom Sliding-Arrow Button for Explore Packages
 
-This plan outlines the design and implementation of an Admin Panel (`AdminPanel.jsx`) with `localStorage`-backed state persistence, allowing real-time edits to all website contents, catalog management, and request monitoring.
+Implement a premium sliding-arrow hover effect on the "Explore Packages" button in the Hero section of the homepage, adapted from Uiverse.io to match the project's design language.
 
-## Architectural Changes
+## User Review Required
 
-```mermaid
-graph TD
-    App[App.jsx State Control] -->|localStorage Sync| LS[Local Storage]
-    App -->|tours, aboutContent| Home[Home.jsx]
-    App -->|aboutContent| About[AboutUs.jsx]
-    App -->|tours, onAddBooking| Book[BookTour.jsx]
-    App -->|contactContent, onAddMessage| Contact[ContactUs.jsx]
-    App -->|All States & Setters| Admin[AdminPanel.jsx]
-```
-
-To make the website dynamically editable, we will lift the state of tours, page texts, contact info, and booking lists up to `App.jsx`, sync it to `localStorage`, and distribute it down via React props.
-
----
+> [!NOTE]
+> The design uses `var(--accent-terracotta)` as the button background and transitions to `var(--text-charcoal)` on hover, with a white circular icon wrapper.
+> We've added transition rules for the non-hover state to make sure the sliding arrows animate smoothly during both hover-in and hover-out.
 
 ## Proposed Changes
 
-### 1. New Component
+### Stylesheets
 
-#### [NEW] [AdminPanel.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/AdminPanel.jsx)
-- **Login screen**: Prompts for password (default `123456`). Uses clear error states.
-- **Admin Dashboard Tabs**:
-  - **Booking Requests**: Table of submitted tour reservations (Tour name, Date, Name, Mobile, Quantity, Status: Pending/Accepted/Rejected). Actions to Accept, Reject, or Delete.
-  - **Contact Messages**: Table of contact inquiries (Name, Email, Type, Message) with Mark-as-Read/Delete options.
-  - **Manage Tours (CRUD)**: List of tours. Includes forms to Add, Edit, or Delete tours with fields: Title, Tagline, Description, Image URL, Duration, Best Time, Difficulty, Landscape.
-  - **Edit Pages Content**: Text inputs to edit:
-    - About Us (Story headings, description paragraphs, mission statement).
-    - Contact Us (Proprietor name, phone, email, address, Google Maps embed link).
-    - Footer details and Social links (Instagram, Twitter, Mail).
+#### [MODIFY] [`src/index.css`](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/index.css)
+Replace the previous bubble button styles with the custom sliding-arrow button styling, fully integrated with the site's typography and color variables.
 
-### 2. Centralizing State in App.jsx
+```css
+/* Custom Sliding-Arrow Explore Packages Button */
+.explore-packages-btn {
+  all: unset;
+  cursor: pointer;
+  line-height: 1;
+  text-decoration: none;
+  display: inline-flex;
+  border: none;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--accent-terracotta);
+  color: #fff;
+  border-radius: 10rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  padding-left: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 10px 25px rgba(184, 92, 66, 0.2);
+  z-index: 1;
+}
 
-#### [MODIFY] [App.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/App.jsx)
-- Initialize all content variables from `localStorage` (with fallback to default Sikkim & Meghpiyon values).
-- Implement state hooks:
-  - `tours`, `aboutContent`, `contactContent`
-  - `bookingRequests` (stores user reservations)
-  - `contactMessages` (stores contact form inputs)
-- Add handlers:
-  - `onAddBookingRequest(req)`
-  - `onAddContactMessage(msg)`
-  - `onUpdateTours(toursList)`
-  - `onUpdateAboutContent(aboutObj)`
-  - `onUpdateContactContent(contactObj)`
-- Integrate the `'admin'` page route rendering `<AdminPanel>`.
-- Add an `"Admin Access"` link in the footer copyright area.
+.explore-packages-btn__icon-wrapper {
+  flex-shrink: 0;
+  width: 25px;
+  height: 25px;
+  position: relative;
+  color: var(--accent-terracotta);
+  background-color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  transition: color 0.3s ease;
+}
 
-### 3. Component Adaptations
+.explore-packages-btn:hover {
+  background-color: var(--text-charcoal);
+  box-shadow: 0 10px 25px rgba(30, 30, 28, 0.25);
+  transform: translateY(-2px);
+}
 
-#### [MODIFY] [Home.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/Home.jsx)
-- Remove hardcoded default tours and description structures.
-- Accept `tours` and `aboutContent` as props and render them dynamically.
+.explore-packages-btn:hover .explore-packages-btn__icon-wrapper {
+  color: var(--text-charcoal);
+}
 
-#### [MODIFY] [AboutUs.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/AboutUs.jsx)
-- Remove hardcoded text descriptions.
-- Accept `aboutContent` as props and render it dynamically.
+.explore-packages-btn__icon-svg {
+  transition: transform 0.3s ease-in-out;
+}
 
-#### [MODIFY] [ContactUs.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/ContactUs.jsx)
-- Accept `contactContent` and `onAddContactMessage` as props.
-- On contact form submission, trigger `onAddContactMessage(newMsg)` to add the inquiry to the admin inbox, and display the confirmation modal.
+.explore-packages-btn__icon-svg--copy {
+  position: absolute;
+  transform: translate(-150%, 150%);
+  transition: transform 0.3s ease-in-out;
+}
 
-#### [MODIFY] [BookTour.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/BookTour.jsx)
-- Accept `tours` and `onAddBookingRequest` as props.
-- On reservation form submission, trigger `onAddBookingRequest(newReq)` to add the reservation to the admin dashboard, and display the confirmation modal.
+/* Hover transitions for the flying arrows */
+.explore-packages-btn:hover .explore-packages-btn__icon-svg:first-child {
+  transform: translate(150%, -150%);
+}
 
----
+.explore-packages-btn:hover .explore-packages-btn__icon-svg--copy {
+  transition: transform 0.3s ease-in-out 0.1s;
+  transform: translate(0);
+}
+
+/* Mobile responsive style */
+@media (max-width: 768px) {
+  .explore-packages-btn {
+    width: 100% !important;
+    justify-content: center !important;
+    box-sizing: border-box;
+  }
+}
+```
+
+### Components
+
+#### [MODIFY] [`src/pages/Home.jsx`](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/Home.jsx)
+Replace the previous button structure with the sliding-arrow markup:
+
+```jsx
+<button 
+  onClick={() => handleBookTourClick('All')}
+  className="explore-packages-btn hero-cta-primary"
+>
+  Explore Packages
+  <span className="explore-packages-btn__icon-wrapper">
+    <ArrowRight className="explore-packages-btn__icon-svg" size={15} />
+    <ArrowRight className="explore-packages-btn__icon-svg explore-packages-btn__icon-svg--copy" size={15} />
+  </span>
+</button>
+```
 
 ## Verification Plan
 
-### Automated Build Verification
-- Execute `npm run build` to verify compiling success.
-
-### Manual Verification Flow
-- Navigate to the page, scroll to the footer, and click **Admin Access**.
-- Log in with `123456`.
-- Add a new tour, edit an existing tour, and verify that changes show up on the Book Tour and Home pages.
-- Submit a booking request as a user, log back into the Admin Panel, and verify the request is logged and can be Accepted/Rejected.
-- Edit Contact details and verify they update on the Contact Us page and footer in real-time.
+### Manual Verification
+- Verify that Vite compiles successfully with the updated components and stylesheet.
+- Hover over the button and verify:
+  1. Background transitions from terracotta to charcoal.
+  2. The icon color transitions to charcoal.
+  3. The first arrow flies out top-right, and a second arrow flies in from bottom-left to replace it.
+  4. Moving mouse away restores the button to its original state smoothly.
