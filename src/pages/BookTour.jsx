@@ -9,6 +9,8 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
       id: 'north-sikkim',
       title: 'North Sikkim Valley Expedition',
       tagline: 'Glaciers, Hot Springs & Sacred Lakes',
+      priceType: 'request',
+      price: '',
       difficulty: 'Challenging Trek',
       badge: 'TREK',
       landscape: 'Glaciers & High Valleys',
@@ -23,6 +25,8 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
       id: 'east-sikkim',
       title: 'Silk Route Heritage Path',
       tagline: 'Historical Hairpins & High Passes',
+      priceType: 'request',
+      price: '',
       difficulty: 'Moderate Walk',
       badge: 'WALK',
       landscape: 'Winding Passes & Ridges',
@@ -37,6 +41,8 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
       id: 'darjeeling-kalimpong',
       title: 'Darjeeling Tea Garden Ridge',
       tagline: 'Morning Kanchenjunga & Cypress Trails',
+      priceType: 'request',
+      price: '',
       difficulty: 'Leisurely Walk',
       badge: 'WALK',
       landscape: 'Tea Estates & Mountain Ridges',
@@ -51,20 +57,38 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
 
   // Map admin-panel tours (which may lack images/dates) onto full format
   const tours = (toursProp && toursProp.length > 0)
-    ? toursProp.map((t, i) => ({
-        id: t.id || `tour-${i}`,
-        title: t.title || 'Tour',
-        tagline: t.tagline || '',
-        difficulty: t.difficulty || 'Moderate Walk',
-        badge: (t.difficulty || '').toLowerCase().includes('challenging') ? 'TREK' : 'WALK',
-        landscape: t.landscape || '',
-        duration: t.duration || '',
-        bestTime: t.bestTime || '',
-        images: t.images || [t.image || '/tour_highlands.jpg', '/hero_landscape.jpg'],
-        description: t.description || '',
-        spotsRemaining: t.spotsRemaining || 4,
-        dates: t.dates || ['Flexible — contact us to arrange your preferred dates']
-      }))
+    ? toursProp.map((t, i) => {
+        const fallback = defaultTours[i] || defaultTours[i % defaultTours.length] || defaultTours[0];
+        // Ensure at least 2 gallery images so dual-thumbnail gallery and carousel controls always show
+        let imgs = (Array.isArray(t.images) && t.images.length > 0)
+          ? [...t.images]
+          : (t.image ? [t.image] : [...fallback.images]);
+        
+        if (imgs.length === 1) {
+          const complementary = fallback.images.find(img => img !== imgs[0]) || '/hero_landscape.jpg';
+          imgs.push(complementary);
+        }
+
+        return {
+          ...fallback,
+          ...t,
+          id: t.id || `tour-${i}`,
+          title: t.title || fallback.title,
+          tagline: t.tagline || fallback.tagline,
+          priceType: t.priceType || (t.price ? 'fixed' : 'request'),
+          price: t.price || '',
+          difficulty: t.difficulty || fallback.difficulty,
+          badge: (t.difficulty || fallback.difficulty || '').toLowerCase().includes('challenging') ? 'TREK' : 'WALK',
+          landscape: t.landscape || fallback.landscape,
+          duration: t.duration || fallback.duration,
+          bestTime: t.bestTime || fallback.bestTime,
+          images: imgs,
+          image: t.image || imgs[0] || fallback.image,
+          description: t.description || fallback.description,
+          spotsRemaining: t.spotsRemaining || fallback.spotsRemaining || 4,
+          dates: t.dates || fallback.dates || ['Flexible — contact us to arrange your preferred dates']
+        };
+      })
     : defaultTours;
 
   // Routing View State: 'collection' | 'detail'
@@ -163,6 +187,7 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
         onAddBookingRequest({
           id: refId,
           tourName: activeTour.title,
+          tourPrice: activeTour.priceType === 'fixed' && activeTour.price ? activeTour.price : 'Rate on Request',
           userName: formData.fullName,
           phone: formData.phone,
           guests: guests,
@@ -331,10 +356,14 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                           }}>
                             {t.title}
                           </h3>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                             <span>{t.duration}</span>
-                            <span style={{ fontWeight: '600', color: 'var(--accent-terracotta)' }}>
-                              Rates on Request
+                            <span style={{ 
+                              fontWeight: '700', 
+                              color: t.priceType === 'fixed' && t.price ? '#15803d' : 'var(--accent-terracotta)',
+                              fontSize: t.priceType === 'fixed' && t.price ? '0.95rem' : '0.85rem'
+                            }}>
+                              {t.priceType === 'fixed' && t.price ? t.price : 'Rates on Request'}
                             </span>
                           </div>
                         </div>
@@ -532,18 +561,23 @@ export default function BookTour({ selectedTour, onClearTourSelection, tours: to
                       {activeTour.tagline}
                     </span>
                     
-                    {/* Price Block (On Request) */}
-                    <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'baseline' }}>
+                    {/* Price Block (Dynamic Price or On Request) */}
+                    <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'baseline', gap: '0.75rem', flexWrap: 'wrap' }}>
                       <span style={{ 
                         fontFamily: 'var(--font-sans)', 
-                        fontSize: '1.3rem', 
-                        fontWeight: '700', 
-                        color: 'var(--accent-terracotta)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.05em'
+                        fontSize: '1.45rem', 
+                        fontWeight: '800', 
+                        color: activeTour.priceType === 'fixed' && activeTour.price ? '#15803d' : 'var(--accent-terracotta)',
+                        letterSpacing: activeTour.priceType === 'fixed' && activeTour.price ? '-0.01em' : '0.05em',
+                        textTransform: activeTour.priceType === 'fixed' && activeTour.price ? 'none' : 'uppercase'
                       }}>
-                        Rates on Request
+                        {activeTour.priceType === 'fixed' && activeTour.price ? activeTour.price : 'Rates on Request'}
                       </span>
+                      {activeTour.priceType === 'fixed' && activeTour.price && (
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', backgroundColor: 'var(--bg-sand)', padding: '0.2rem 0.5rem', borderRadius: '4px', fontWeight: 600 }}>
+                          All-inclusive itinerary
+                        </span>
+                      )}
                     </div>
                   </div>
 

@@ -54,11 +54,22 @@ We have successfully patched and verified all mobile layout responsiveness bugs,
 - Added premium Framer Motion hover (`scale: 1.05`, terracotta accent color) and tap (`scale: 0.95`) micro-animations to the mobile navigation links and buttons for a highly responsive, high-end feel.
 # Red Kite Tourism - Walkthrough
 
-We have successfully patched and verified all mobile layout responsiveness bugs, resolving all horizontal scroll overflow issues.
-
 ## Key Accomplishments
 
-### 1. Grid Column wrapping fix
+### 1. Tour Pricing Options in Admin Dashboard & Live Customer Views
+- **Pricing Mode Switcher in Admin Panel** ([AdminPanel.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/AdminPanel.jsx)):
+  - Added an intuitive **Pricing Option** selector when adding or editing tours in the **Manage Tours** tab:
+    - **💬 Rate on Request** (default): Shows "Rates on Request" on all public pages and prompts custom quote generation upon booking inquiry.
+    - **🏷️ Custom / Fixed Price**: Reveals a dedicated price input with quick templates (e.g. `₹11,999 / person`, `₹14,999 / person`, `₹18,500 / person`, `₹25,000 / couple`) or allows custom price entries.
+  - Added a status badge on tour cards in the Admin Panel Tour Catalog grid displaying either `🏷️ [Price]` or `💬 Rate on Request`.
+- **Dynamic Price Display on Book Tour Catalog & Detail Pages** ([BookTour.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/BookTour.jsx)):
+  - Updated the **Collection Catalog Grid** to dynamically display the custom price (e.g., `₹14,999 / person`) in emerald green when set, or `Rates on Request` in terracotta.
+  - Updated the **Tour Detail Page** price banner with an `All-inclusive itinerary` badge for fixed prices or `Rates on Request`.
+  - Automatically attaches the tour price (`tourPrice`) to booking submissions so the admin can review the quoted rate directly in reservation requests.
+- **Dynamic Price Display on Home Page** ([Home.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/pages/Home.jsx)):
+  - Updated the **Signature Experiences** section to render the configured price or `Rates on Request` alongside the tour duration.
+- **Default Data Compatibility** ([App.jsx](file:///c:/Users/jitsi/OneDrive/Desktop/RED%20KITE%20TOURISM/src/App.jsx)):
+  - Updated default tour definitions and `localStorage` syncing logic to support `priceType` and `price` with backward compatibility.
 - Refactored `.col-12-mobile` inside `<style>` blocks of `Home.jsx`, `AboutUs.jsx`, `ContactUs.jsx`, and `BookTour.jsx` to use `grid-column: 1 / -1 !important`. This allows children to fit neatly on 1-column mobile grid layouts without implicitly stretching columns beyond the viewport width.
 
 ### 2. Editorial Grid Overflow Fix (`Home.jsx`)

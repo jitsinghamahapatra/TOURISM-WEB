@@ -537,7 +537,7 @@ export default function Home({ tours, aboutContent, onSelectTour, onNavigate }) 
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     style={{
-                      backgroundImage: `url("${tour.image}")`,
+                      backgroundImage: `url("${tour.image || (tour.images && tour.images[0]) || '/tour_highlands.jpg'}")`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                       width: '100%',
@@ -553,7 +553,7 @@ export default function Home({ tours, aboutContent, onSelectTour, onNavigate }) 
                   textAlign: 'left'
                 }} className="col-12-mobile">
                   <span className="label-mono" style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {tour.duration} &middot; Rates on Request
+                    {tour.duration} &middot; {tour.priceType === 'fixed' && tour.price ? tour.price : 'Rates on Request'}
                   </span>
                   <h3 className="heading-small" style={{ marginTop: '0.5rem', marginBottom: '0.25rem', color: 'var(--text-charcoal)', fontWeight: 600 }}>
                     {tour.title}

@@ -24,7 +24,9 @@ export default function AdminPanel({
   const [editingTourIdx, setEditingTourIdx] = useState(null);
   const [tourForm, setTourForm] = useState({
     title: '', tagline: '', image: '', images: [], duration: '',
-    description: '', bestTime: '', difficulty: '', landscape: ''
+    description: '', bestTime: '', difficulty: '', landscape: '',
+    priceType: 'request',
+    price: ''
   });
   const [isTourFormOpen, setIsTourFormOpen] = useState(false);
   const [imageMode, setImageMode] = useState('url'); // 'url' | 'upload'
@@ -97,13 +99,36 @@ export default function AdminPanel({
     if (idx !== null) {
       setEditingTourIdx(idx);
       const t = tours[idx];
+      const defaultGalleryMap = [
+        ['/tour_highlands.jpg', '/hero_landscape.jpg', '/tour_patagonia.jpg'],
+        ['/tour_patagonia.jpg', '/hero_landscape.jpg', '/tour_tuscany.jpg'],
+        ['/tour_tuscany.jpg', '/hero_landscape.jpg', '/tour_highlands.jpg']
+      ];
+      const fallbackImgs = defaultGalleryMap[idx % defaultGalleryMap.length] || defaultGalleryMap[0];
+      let existingImgs = (Array.isArray(t.images) && t.images.length > 0)
+        ? [...t.images]
+        : (t.image ? [t.image] : fallbackImgs);
+      
+      if (existingImgs.length === 1 && fallbackImgs) {
+        const extra = fallbackImgs.find(x => x !== existingImgs[0]);
+        if (extra) existingImgs.push(extra);
+      }
+
       setTourForm({
         ...t,
-        images: Array.isArray(t.images) ? t.images : (t.image ? [t.image] : [])
+        priceType: t.priceType || (t.price ? 'fixed' : 'request'),
+        price: t.price || '',
+        image: t.image || existingImgs[0],
+        images: existingImgs
       });
     } else {
       setEditingTourIdx(null);
-      setTourForm({ title: '', tagline: '', image: '', images: [], duration: '', description: '', bestTime: '', difficulty: '', landscape: '' });
+      setTourForm({
+        title: '', tagline: '', image: '', images: [], duration: '',
+        description: '', bestTime: '', difficulty: '', landscape: '',
+        priceType: 'request',
+        price: ''
+      });
     }
     setIsTourFormOpen(true);
     setImageMode('url');
@@ -147,6 +172,8 @@ export default function AdminPanel({
     e.preventDefault();
     const finalTour = {
       ...tourForm,
+      priceType: tourForm.priceType || 'request',
+      price: tourForm.priceType === 'fixed' ? (tourForm.price || '').trim() : '',
       image: tourForm.images[0] || tourForm.image || '',
       images: tourForm.images.length > 0 ? tourForm.images : (tourForm.image ? [tourForm.image] : [])
     };
@@ -423,6 +450,95 @@ export default function AdminPanel({
                     ))}
                   </div>
 
+                  {/* Pricing Option Section */}
+                  <div style={{ marginTop: '1.25rem', backgroundColor: 'var(--bg-sand-light)', padding: '1.25rem', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+                    <label style={{ ...styles.formLabel, marginBottom: '0.75rem' }}>Pricing Option</label>
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: tourForm.priceType === 'fixed' ? '1rem' : '0' }}>
+                      <button
+                        type="button"
+                        onClick={() => setTourForm(p => ({ ...p, priceType: 'request' }))}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.55rem 1.1rem',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          backgroundColor: tourForm.priceType === 'request' ? 'var(--text-charcoal)' : 'var(--bg-alabaster)',
+                          color: tourForm.priceType === 'request' ? '#fff' : 'var(--text-charcoal)',
+                          border: '1px solid ' + (tourForm.priceType === 'request' ? 'var(--text-charcoal)' : 'var(--border-light)'),
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>💬</span> Rate on Request
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setTourForm(p => ({ ...p, priceType: 'fixed', price: p.price || '₹14,999 / person' }))}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          padding: '0.55rem 1.1rem',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          backgroundColor: tourForm.priceType === 'fixed' ? 'var(--text-charcoal)' : 'var(--bg-alabaster)',
+                          color: tourForm.priceType === 'fixed' ? '#fff' : 'var(--text-charcoal)',
+                          border: '1px solid ' + (tourForm.priceType === 'fixed' ? 'var(--text-charcoal)' : 'var(--border-light)'),
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <span style={{ fontSize: '1rem' }}>🏷️</span> Custom / Fixed Price
+                      </button>
+                    </div>
+
+                    {tourForm.priceType === 'request' ? (
+                      <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                        ℹ️ This tour will display <strong>"Rates on Request"</strong> on collection & detail pages. Pricing will be calculated and provided on inquiry.
+                      </p>
+                    ) : (
+                      <div style={{ marginTop: '0.75rem' }}>
+                        <label style={{ ...styles.formLabel, fontSize: '0.75rem', marginBottom: '0.35rem' }}>Package Price / Rate</label>
+                        <input
+                          type="text"
+                          name="price"
+                          value={tourForm.price || ''}
+                          onChange={handleTourFormChange}
+                          placeholder="e.g. ₹14,999 / person or ₹18,000"
+                          style={styles.formInput}
+                          required={tourForm.priceType === 'fixed'}
+                        />
+                        <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Quick templates:</span>
+                          {['₹11,999 / person', '₹14,999 / person', '₹18,500 / person', '₹25,000 / couple'].map(tpl => (
+                            <button
+                              key={tpl}
+                              type="button"
+                              onClick={() => setTourForm(p => ({ ...p, price: tpl }))}
+                              style={{
+                                fontSize: '0.72rem',
+                                padding: '0.2rem 0.5rem',
+                                borderRadius: '4px',
+                                border: '1px solid var(--border-light)',
+                                backgroundColor: 'var(--bg-alabaster)',
+                                color: 'var(--accent-terracotta)',
+                                cursor: 'pointer',
+                                fontWeight: 500
+                              }}
+                            >
+                              {tpl}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div style={{ marginTop: '1.25rem' }}>
                     <label style={styles.formLabel}>Description</label>
                     <textarea name="description" rows={4} value={tourForm.description || ''} onChange={handleTourFormChange} style={{ ...styles.formInput, resize: 'vertical' }} placeholder="Highlight key experiences, homestay details, food, and route info." />
@@ -466,6 +582,43 @@ export default function AdminPanel({
                       </div>
                     )}
 
+                    {/* Quick Preset Images */}
+                    <div style={{ marginTop: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>+ Quick Scenic Photos:</span>
+                      {[
+                        { label: '🏔️ Highlands', url: '/tour_highlands.jpg' },
+                        { label: '🌄 Valley Fog', url: '/hero_landscape.jpg' },
+                        { label: '🛣️ Silk Route', url: '/tour_patagonia.jpg' },
+                        { label: '🍃 Tea Estates', url: '/tour_tuscany.jpg' },
+                      ].map(preset => (
+                        <button
+                          key={preset.url}
+                          type="button"
+                          onClick={() => {
+                            if (!tourForm.images.includes(preset.url)) {
+                              setTourForm(prev => ({
+                                ...prev,
+                                images: [...prev.images, preset.url],
+                                image: prev.images.length === 0 ? preset.url : prev.image
+                              }));
+                            }
+                          }}
+                          style={{
+                            fontSize: '0.72rem',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid var(--border-light)',
+                            backgroundColor: '#fff',
+                            color: 'var(--text-charcoal)',
+                            cursor: 'pointer',
+                            fontWeight: 500
+                          }}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
                     {/* Image previews */}
                     {tourForm.images && tourForm.images.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem' }}>
@@ -497,6 +650,7 @@ export default function AdminPanel({
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
               {tours.map((tour, idx) => {
                 const coverImg = (tour.images && tour.images[0]) || tour.image || '';
+                const isFixedPrice = tour.priceType === 'fixed' && tour.price;
                 return (
                   <div key={idx} style={{ backgroundColor: 'var(--bg-alabaster)', borderRadius: '8px', border: '1px solid var(--border-light)', overflow: 'hidden', textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
                     <div style={{ height: '160px', backgroundImage: `url("${coverImg}")`, backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', backgroundColor: 'var(--bg-sand)' }}>
@@ -506,8 +660,25 @@ export default function AdminPanel({
                       )}
                     </div>
                     <div style={{ padding: '1.25rem', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      <h4 style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-charcoal)', margin: 0 }}>{tour.title}</h4>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <h4 style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-charcoal)', margin: 0, lineHeight: 1.25 }}>{tour.title}</h4>
+                      </div>
                       <p style={{ fontStyle: 'italic', color: 'var(--accent-terracotta)', fontSize: '0.85rem', margin: 0 }}>{tour.tagline}</p>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '4px',
+                          backgroundColor: isFixedPrice ? '#dcfce7' : 'var(--bg-sand)',
+                          color: isFixedPrice ? '#15803d' : 'var(--accent-terracotta)',
+                          display: 'inline-block'
+                        }}>
+                          {isFixedPrice ? `🏷️ ${tour.price}` : '💬 Rate on Request'}
+                        </span>
+                      </div>
+
                       <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
                         <span>⏱ {tour.bestTime}</span>
                         <span>🏔 {tour.difficulty}</span>

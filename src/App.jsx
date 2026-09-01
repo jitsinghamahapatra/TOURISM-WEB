@@ -33,30 +33,42 @@ import AdminPanel from './pages/AdminPanel';
 
 const defaultTours = [
   {
+    id: 'north-sikkim',
     title: 'North Sikkim Valley Expedition',
     tagline: 'Glaciers, Hot Springs & Sacred Lakes',
     image: '/tour_highlands.jpg',
+    images: ['/tour_highlands.jpg', '/hero_landscape.jpg', '/tour_patagonia.jpg'],
     duration: '6 Days',
+    priceType: 'request',
+    price: '',
     description: 'A journey through the high altitude fields of Lachung and Lachen, tracing the pristine path to Gurudongmar Lake. Features authentic village homestays with warm hospitality, traditional food, and stunning views.',
     bestTime: 'April - June & Oct - Dec',
     difficulty: 'Challenging Trek',
     landscape: 'Glaciers & High Valleys'
   },
   {
+    id: 'east-sikkim',
     title: 'Silk Route Heritage Path',
     tagline: 'Historical Hairpins & High Passes',
     image: '/tour_patagonia.jpg',
+    images: ['/tour_patagonia.jpg', '/hero_landscape.jpg', '/tour_tuscany.jpg'],
     duration: '5 Days',
+    priceType: 'request',
+    price: '',
     description: 'Follow the ancient trader tracks of the Silk Route through Zuluk and Nathang Valley. Stay in cozy homesteads with a beautiful Bengali touch, enjoying delicious, homely food prepared by local hosts.',
     bestTime: 'May - July & Oct - Nov',
     difficulty: 'Moderate Drive & Walk',
     landscape: 'High Passes & Hairpin Ridges'
   },
   {
+    id: 'darjeeling-kalimpong',
     title: 'Darjeeling Tea Garden Ridge',
     tagline: 'Morning Kanchenjunga & Cypress Trails',
     image: '/tour_tuscany.jpg',
+    images: ['/tour_tuscany.jpg', '/hero_landscape.jpg', '/tour_highlands.jpg'],
     duration: '4 Days',
+    priceType: 'request',
+    price: '',
     description: 'A relaxing retreat through the heritage tea estates of Darjeeling and pine trails of Kalimpong. Perfect for couples or families seeking peaceful views, local heritage walks, and comforting local cuisine.',
     bestTime: 'March - May & Oct - Dec',
     difficulty: 'Easy Walk',
@@ -120,7 +132,25 @@ function AppContent() {
   // Centralized State
   const [tours, setTours] = useState(() => {
     const saved = localStorage.getItem('meghpiyon_tours');
-    return saved ? JSON.parse(saved) : defaultTours;
+    if (!saved) return defaultTours;
+    try {
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed) || parsed.length === 0) return defaultTours;
+      return parsed.map((t, idx) => {
+        const fallback = defaultTours[idx] || defaultTours[0];
+        const imgs = (Array.isArray(t.images) && t.images.length > 0)
+          ? t.images
+          : (t.image ? [t.image, '/hero_landscape.jpg'] : fallback.images);
+        return {
+          ...fallback,
+          ...t,
+          image: t.image || imgs[0] || fallback.image,
+          images: imgs
+        };
+      });
+    } catch {
+      return defaultTours;
+    }
   });
 
   const [aboutContent, setAboutContent] = useState(() => {
